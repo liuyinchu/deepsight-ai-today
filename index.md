@@ -1,8 +1,26 @@
 # AI 前沿札记
 
-> 更新日期：2026-10-12（Asia/Shanghai） · 第 001 期
+> 更新日期：2026-10-12（Asia/Shanghai） · 第 001 期（增补）
 >
-> 信息范围：2026-10-06 至 2026-10-07 的两项发布；资料核查截至 2026-10-12 06:31（Asia/Shanghai）。
+> 信息范围：2026-10-06 至 2026-10-11；本次增补核查截至 2026-10-12 06:41（Asia/Shanghai）。
+>
+> [增补前版本](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-12.md)已原样归档。
+
+## 10 月 11 日增补：本地推理的可靠性与开销
+
+本次新增两条北京时间 10 月 11 日发布的运行时更新，保留后文 10 月 6—7 日的模型观察。它们关系到“回答是否用了正确上下文”和“高频检索请求是否被后台工作拖慢”。
+
+### llama.cpp b11552：修复忙碌槽位的上下文被改写
+
+**已核实的版本变化。** b11552 于 2026-10-10 19:52 UTC 发布，即北京时间 10 月 11 日 03:52，GitHub 标为 **Pre-release（预发布）**。发布说明描述：新请求指定一个仍在生成的 `id_slot` 时，旧逻辑可能先把 RAM 中更匹配的提示缓存载入该槽位，再等待；这会让原请求在错误上下文上继续生成。该版本改为保持忙碌槽位不动，让新请求等待。[发布记录](https://github.com/ggml-org/llama.cpp/releases/tag/b11552)
+
+**项目方说明与编辑判断。** [合并修复 #30295](https://github.com/ggml-org/llama.cpp/pull/30295)附有回归测试，讨论中还有用户的限定配置测试与作者的回归检查；这些不代表所有部署已验证。对显式指定槽位、并发使用提示缓存的部署，这比单纯提升吞吐更值得检查。这里是风险判断，本期没有运行测试，也不把预发布构建当作已验证的生产升级建议。
+
+### Ollama v0.40.3：暂时移除后台模型兼容性迁移
+
+**已核实的版本变化。** v0.40.3 于 2026-10-11 01:39 UTC 发布，即北京时间 10 月 11 日 09:39。[发布记录](https://github.com/ollama/ollama/releases/tag/v0.40.3)将暂停后台模型升级列为面向 embedding 等请求性能的调整；对应[修复 #18908](https://github.com/ollama/ollama/pull/18908)进一步明确，暂时移除的是本地模型兼容性迁移，项目方称其给高请求量场景带来了逐请求开销和垃圾回收压力。
+
+**编辑判断与待验证项。** 这与前文端侧检索的成本问题直接相关，但发布记录没有给出提速幅度。若运行旧版 Ollama 并批量生成向量，可用同一模型和同一批文本比较升级前后的尾延迟、内存与吞吐，再判断是否有收益；本期未做这个实验，也未据此确认它支持本文提到的每一个模型。
 
 ## 本期关注：云端短任务降价，端侧检索走向多模态
 
@@ -56,4 +74,12 @@
    首次发布日期：页面未标注；页面标注最后更新：2026-10-06 UTC。
 6. [Google 官方模型仓库：google/embeddinggemma-2](https://huggingface.co/google/embeddinggemma-2)
    首次发布日期：页面未标注；用于交叉核对模型身份、许可和规格。
+7. [llama.cpp：b11552 发布记录](https://github.com/ggml-org/llama.cpp/releases/tag/b11552)
+   发布／事件日期：2026-10-10 19:52 UTC，折合 2026-10-11 03:52（Asia/Shanghai）；预发布状态与时间由 GitHub Releases 元数据交叉核对。
+8. [llama.cpp：server: leave a busy slot untouched when a request pins it，PR #30295](https://github.com/ggml-org/llama.cpp/pull/30295)
+   创建日期：2026-10-10；合并日期：2026-10-10（UTC）；用于核对修复条件、回归测试声明与未确认范围。
+9. [Ollama：v0.40.3 发布记录](https://github.com/ollama/ollama/releases/tag/v0.40.3)
+   发布／事件日期：2026-10-11 01:39 UTC，折合 2026-10-11 09:39（Asia/Shanghai）；时间由 GitHub Releases 元数据交叉核对。
+10. [Ollama：server: skip local model compatibility migration，PR #18908](https://github.com/ollama/ollama/pull/18908)
+    创建／合并日期：2026-10-09（UTC）；用于核对后台迁移变更的原因，不将合并日写成版本发布日期。
 
