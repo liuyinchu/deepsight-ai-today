@@ -2,9 +2,17 @@
 
 > 更新日期：2026-10-12（Asia/Shanghai） · 第 001 期（增补）
 >
-> 信息范围：2026-10-06 至 2026-10-11；本次增补核查截至 2026-10-12 06:41（Asia/Shanghai）。
+> 信息范围：2026-10-06 至 2026-10-11；本次增补核查截至 2026-10-12 07:08（Asia/Shanghai）。
 >
-> [增补前版本](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-12.md)已原样归档。
+> [初版](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-12.md)与[本次增补前版本](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-12-0641.md)均已原样归档。
+
+## Tibo 本人动态：reset 完成声明与 Pro 用量投票
+
+**本人声明。** 北京时间 2026-10-11 12:01，Tibo（@thsottiaux）发帖称，此次 reset 已全部传播完成；该帖引用了他此前“当天结束前进行全局重置”的预告。因此，这条消息是完成声明，而非下一次 reset 的预告。[完成声明](https://x.com/thsottiaux/status/2109132167112782291) · [此前预告](https://x.com/thsottiaux/status/2109045392684032299)
+
+**最新征询。** 同日北京时间 13:22，他向 Pro 用户发起用量方案投票：设置 5 小时限额、周用量翻倍，或不设 5 小时限额、周用量维持不变。[本人投票](https://x.com/thsottiaux/status/2109152716954222849)
+
+**适用范围与编辑判断。** reset 短帖没有展开各产品、套餐或账户的到账情况，本期未登录账户验证；不能将其扩大解释为所有 OpenAI 产品的额度都已恢复。投票说明他在征求偏好，不代表新配额政策已经上线，也不足以推断下一次 reset 的时间。上述内容来自本人公开原帖，不作为匿名传闻处理。
 
 ## 10 月 11 日增补：本地推理的可靠性与开销
 
@@ -82,4 +90,10 @@
    发布／事件日期：2026-10-11 01:39 UTC，折合 2026-10-11 09:39（Asia/Shanghai）；时间由 GitHub Releases 元数据交叉核对。
 10. [Ollama：server: skip local model compatibility migration，PR #18908](https://github.com/ollama/ollama/pull/18908)
     创建／合并日期：2026-10-09（UTC）；用于核对后台迁移变更的原因，不将合并日写成版本发布日期。
+11. [Tibo（@thsottiaux）：reset 完成声明，X 原帖](https://x.com/thsottiaux/status/2109132167112782291)
+    发布日期：2026-10-11 04:01 UTC，折合 2026-10-11 12:01（Asia/Shanghai）；查阅日期：2026-10-12。
+12. [Tibo（@thsottiaux）：Global reset by EOD，X 原帖](https://x.com/thsottiaux/status/2109045392684032299)
+    发布日期：2026-10-10 22:16 UTC，折合 2026-10-11 06:16（Asia/Shanghai）；查阅日期：2026-10-12。
+13. [Tibo（@thsottiaux）：Pro 用量方案投票，X 原帖](https://x.com/thsottiaux/status/2109152716954222849)
+    发布日期：2026-10-11 05:22 UTC，折合 2026-10-11 13:22（Asia/Shanghai）；查阅日期：2026-10-12。
 
