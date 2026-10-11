@@ -34,9 +34,9 @@ Google Cloud 在 **10 月 8 日**的 Gemini at Work 发布 Gemini agent。按照
 
 ## 03 · Codex：提速之后，“能跑多久”成了体验的一部分
 
-**10 月 8 日**，OpenAI 的 API 与产品更新记录同时加入 GPT‑6.1 Sol Ultrafast，目标是减少生成 token 之间的等待。API 面向所有 API 用户开放，但有独立速率限制；Codex 和 ChatGPT Work 则面向 Pro $500 及符合条件的 Enterprise、Edu，企业管理员需要开启权限。[API 更新记录](https://developers.openai.com/api/docs/changelog) · [产品更新记录](https://learn.chatgpt.com/docs/changelog)
+**10 月 8 日**，OpenAI 的 API 与产品更新记录同时加入 GPT‑6.1 Sol Ultrafast，目标是减少生成 token 之间的等待。API 面向所有 API 用户开放，但有独立速率限制；Codex 和 ChatGPT Work 则面向 Pro 500 美元 及符合条件的 Enterprise、Edu，企业管理员需要开启权限。[API 更新记录](https://developers.openai.com/api/docs/changelog) · [产品更新记录](https://learn.chatgpt.com/docs/changelog)
 
-速度有明确的用量代价。查阅时的帮助文档写明，Pro $500 使用 Ultrafast 时，套餐内额度按所选模型 Standard 的 **8 倍**消耗；额度用完后，按 Standard 积分费率的 **6 倍**扣除积分。这里的倍数是用量与计费规则，不能读成任务整体快了同样倍数。Plus、Pro $100、Pro $200 和 Business 在推出时不提供该模式，购买积分也不解锁。[用量与开放条件](https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex)
+速度有明确的用量代价。查阅时的帮助文档写明，Pro 500 美元 使用 Ultrafast 时，套餐内额度按所选模型 Standard 的 **8 倍**消耗；额度用完后，按 Standard 积分费率的 **6 倍**扣除积分。这里的倍数是用量与计费规则，不能读成任务整体快了同样倍数。Plus、Pro 100 美元、Pro 200 美元 和 Business 在推出时不提供该模式，购买积分也不解锁。[用量与开放条件](https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex)
 
 这也让 Tibo 的周末动态有了上下文：
 
