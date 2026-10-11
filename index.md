@@ -1,99 +1,92 @@
 # AI 前沿札记
 
-> 更新日期：2026-10-12（Asia/Shanghai） · 第 001 期（增补）
+> 更新日期：2026-10-12（Asia/Shanghai） · 第 001 期
 >
-> 信息范围：2026-10-06 至 2026-10-11；本次增补核查截至 2026-10-12 07:08（Asia/Shanghai）。
->
-> [初版](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-12.md)与[本次增补前版本](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-12-0641.md)均已原样归档。
+> 信息范围：2026-10-06 至 2026-10-11；核查截至 2026-10-12 07:21（北京时间）。
 
-## Tibo 本人动态：reset 完成声明与 Pro 用量投票
+## 本期关注：AI 开始交付工作，速度与额度成了新战场
 
-**本人声明。** 北京时间 2026-10-11 12:01，Tibo（@thsottiaux）发帖称，此次 reset 已全部传播完成；该帖引用了他此前“当天结束前进行全局重置”的预告。因此，这条消息是完成声明，而非下一次 reset 的预告。[完成声明](https://x.com/thsottiaux/status/2109132167112782291) · [此前预告](https://x.com/thsottiaux/status/2109045392684032299)
+问一句话，得到一段答案，正在变成问一句话，得到一个能操作的界面、一份做完的工作，甚至一组等待同行检查的数学证明。这一周，ChatGPT、Gemini 和 Codex 的更新把这条变化呈现得很具体。随之而来的问题也更实际：谁能用，能用多久，一次成功交付到底花多少钱？
 
-**最新征询。** 同日北京时间 13:22，他向 Pro 用户发起用量方案投票：设置 5 小时限额、周用量翻倍，或不设 5 小时限额、周用量维持不变。[本人投票](https://x.com/thsottiaux/status/2109152716954222849)
+**先看这五件事：**
 
-**适用范围与编辑判断。** reset 短帖没有展开各产品、套餐或账户的到账情况，本期未登录账户验证；不能将其扩大解释为所有 OpenAI 产品的额度都已恢复。投票说明他在征求偏好，不代表新配额政策已经上线，也不足以推断下一次 reset 的时间。上述内容来自本人公开原帖，不作为匿名传闻处理。
+- **ChatGPT 把回答变成工具。** GPT‑6 与 Intelligent UI 开始向更多套餐推出，图表、按钮和小工具进入日常对话。
+- **Google 把“AI 同事”放进办公软件。** Gemini agent 可以跨工具持续执行工作，底层还可以选择 Claude。
+- **Codex 更快，额度也更值得算。** Sol Ultrafast 上线；Tibo 已发出此次 reset 完成声明，并征询 Pro 用户对限额的偏好。
+- **生成与检索都有更轻的选择。** Haiku 5.5 降低短任务单价，Qwen‑Image‑2.1‑Turbo 用 8 步生成和编辑图片，EmbeddingGemma 2 面向本地多模态检索。
+- **AI 数学研究进入公开纠错。** OpenAI 放出论文与证明材料，仓库随后记录撤稿和修订。成果与验证要一起看。
 
-## 10 月 11 日增补：本地推理的可靠性与开销
+## 01 · ChatGPT：答案开始有按钮，也能现场做一个小工具
 
-本次新增两条北京时间 10 月 11 日发布的运行时更新，保留后文 10 月 6—7 日的模型观察。它们关系到“回答是否用了正确上下文”和“高频检索请求是否被后台工作拖慢”。
+OpenAI 在 **10 月 7 日**推出面向 Chat 的新 GPT‑6 模型与 Intelligent UI。回答可以组合文字、图形、按钮、表单和交互体验；公告给出的例子包括可探索的知识图解、分账工具和小游戏。对普通用户，最直观的变化是：一些原本需要继续追问、复制进表格的内容，可以直接在对话里调整和查看。[发布公告](https://openai.com/index/gpt-6-for-everyone/)
 
-### llama.cpp b11552：修复忙碌槽位的上下文被改写
+开放范围要分清：公告称 10 月 7 日起向 Plus、Pro、Business、Enterprise 的 **Chat** 推出，10 月 8 日开始扩展到 Free、Go；企业仍受管理员设置影响。这次更新不改变 Work 和 Codex 使用的模型，也不等于所有账户已在同一时刻收到功能。
 
-**已核实的版本变化。** b11552 于 2026-10-10 19:52 UTC 发布，即北京时间 10 月 11 日 03:52，GitHub 标为 **Pre-release（预发布）**。发布说明描述：新请求指定一个仍在生成的 `id_slot` 时，旧逻辑可能先把 RAM 中更匹配的提示缓存载入该槽位，再等待；这会让原请求在错误上下文上继续生成。该版本改为保持忙碌槽位不动，让新请求等待。[发布记录](https://github.com/ggml-org/llama.cpp/releases/tag/b11552)
+**看点。** 本期的判断是，交互界面会改变人们使用 AI 的方式：用户可以通过改参数、点选项来理解答案，而不必每一步都重新写提示词。但界面好用与内容正确是两回事，生成的计算工具仍需要检查公式、单位和边界条件。
 
-**项目方说明与编辑判断。** [合并修复 #30295](https://github.com/ggml-org/llama.cpp/pull/30295)附有回归测试，讨论中还有用户的限定配置测试与作者的回归检查；这些不代表所有部署已验证。对显式指定槽位、并发使用提示缓存的部署，这比单纯提升吞吐更值得检查。这里是风险判断，本期没有运行测试，也不把预发布构建当作已验证的生产升级建议。
+## 02 · Gemini：从办公助手走向能持续执行的“AI 同事”
 
-### Ollama v0.40.3：暂时移除后台模型兼容性迁移
+Google Cloud 在 **10 月 8 日**的 Gemini at Work 发布 Gemini agent。按照官方介绍，它能连接业务工具、调用技能、生成内容并编写和运行代码；工作在云端持续执行，关闭笔记本后仍可继续。Google 还展示了带独立身份的 coworker agent，可以作为团队成员参与邮件、文档和聊天。[Google Cloud 发布说明](https://cloud.google.com/blog/products/ai-machine-learning/welcome-to-gemini-at-work-2026)
 
-**已核实的版本变化。** v0.40.3 于 2026-10-11 01:39 UTC 发布，即北京时间 10 月 11 日 09:39。[发布记录](https://github.com/ollama/ollama/releases/tag/v0.40.3)将暂停后台模型升级列为面向 embedding 等请求性能的调整；对应[修复 #18908](https://github.com/ollama/ollama/pull/18908)进一步明确，暂时移除的是本地模型兼容性迁移，项目方称其给高请求量场景带来了逐请求开销和垃圾回收压力。
+一个容易被产品名掩盖的细节是：**Gemini 是代理产品，底层模型是另一层选择。** 公告列出的模型编排既包括 Gemini，也包括 Anthropic 的 Claude。团队成员型代理则只访问分享给它的上下文。这里描述的是厂商公布的能力与访问设计；具体套餐、地区和组织开通情况仍需另查，不能据此认定个人 Gemini 用户已拥有全部功能。
 
-**编辑判断与待验证项。** 这与前文端侧检索的成本问题直接相关，但发布记录没有给出提速幅度。若运行旧版 Ollama 并批量生成向量，可用同一模型和同一批文本比较升级前后的尾延迟、内存与吞吐，再判断是否有收益；本期未做这个实验，也未据此确认它支持本文提到的每一个模型。
+**看点。** 与 ChatGPT 的交互式回答放在一起看，竞争正在延伸到工作入口：谁能理解已有资料、跨软件完成任务，并留下可追踪的结果。对团队而言，试用时应先检查权限边界、失败后的接管方式和成本控制，再看演示是否流畅。
 
-## 本期关注：云端短任务降价，端侧检索走向多模态
+## 03 · Codex：提速之后，“能跑多久”成了体验的一部分
 
-做摘要、分类和资料检索，往往需要反复处理大量小任务。本期关注两种不同的变化：Claude Haiku 5.5 调整云端调用的成本与迁移条件；EmbeddingGemma 2 把端侧向量检索扩展到文字、图像、音频和视频。它们分别服务生成任务与检索环节，不能按同一套跑分直接比较。
+**10 月 8 日**，OpenAI 的 API 与产品更新记录同时加入 GPT‑6.1 Sol Ultrafast，目标是减少生成 token 之间的等待。API 面向所有 API 用户开放，但有独立速率限制；Codex 和 ChatGPT Work 则面向 Pro $500 及符合条件的 Enterprise、Edu，企业管理员需要开启权限。[API 更新记录](https://developers.openai.com/api/docs/changelog) · [产品更新记录](https://learn.chatgpt.com/docs/changelog)
 
-## 发生了什么
+速度有明确的用量代价。查阅时的帮助文档写明，Pro $500 使用 Ultrafast 时，套餐内额度按所选模型 Standard 的 **8 倍**消耗；额度用完后，按 Standard 积分费率的 **6 倍**扣除积分。这里的倍数是用量与计费规则，不能读成任务整体快了同样倍数。Plus、Pro $100、Pro $200 和 Business 在推出时不提供该模式，购买积分也不解锁。[用量与开放条件](https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex)
 
-### Claude Haiku 5.5：看清价格门槛和迁移条件
+这也让 Tibo 的周末动态有了上下文：
 
-**发布事实。** Anthropic 于 2026-10-07 发布 Haiku 5.5，Claude Platform 模型 ID 为 `claude-haiku-5-5`；公告也列出 AWS、Google Cloud 和 Microsoft Azure。它是首个提供可调 effort 设置的 Haiku 系列模型。这里核实的是官方发布与文档，不代表已逐地区、逐账户验证可用性。[发布公告](https://www.anthropic.com/claude-haiku-5-5)
+- **10 月 11 日 12:01，北京时间：** Tibo（@thsottiaux）[发帖称此次 reset 已全部传播完成](https://x.com/thsottiaux/status/2109132167112782291)，引用的是此前“当天结束前全局重置”的预告。
+- **同日 13:22：** 他[向 Pro 用户发起投票](https://x.com/thsottiaux/status/2109152716954222849)，征询“设置 5 小时限额、周用量翻倍”与“不设 5 小时限额、周用量维持不变”的偏好。
 
-**计费条件。** Claude API 标准价格以美元、每百万 token 计：提示不超过 100,000 token 时，普通输入为 0.10、输出为 0.50；超过门槛则分别为 0.50、2.50。门槛按全部输入计算，包含缓存读写；缓存、批处理、工具及地域选项另有计费规则，不能把这个单价当作完整任务账单。[价格文档](https://platform.claude.com/docs/en/about-claude/pricing)
+这是本人公开声明与征询。本期没有验证各账户额度到账，短帖也没有逐项列出所有产品与套餐；投票不是已经实施的政策，更不能推出下一次 reset 的日期。
 
-**迁移限制。** 官方迁移指南提示重新统计 token，并调整 thinking 配置、采样参数和 assistant prefill；因此旧代码只替换模型 ID 未必能用。文档还明确，Amazon Bedrock 上的 Haiku 5.5 不支持 structured outputs，不能假设各平台功能完全一致。[迁移指南](https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide)
+**看点。** 对赶工的人，更快响应可能值得额外消耗；对长时间后台任务，持续可用的额度可能更重要。比较速度模式时，应同时记录完成时间、成功率和额度消耗，而不是只盯着屏幕上文字输出得多快。
 
-### EmbeddingGemma 2：在设备上检索多种媒体
+## 04 · 更便宜、更轻的模型：把钱花在需要的环节
 
-**发布事实。** Google 于 2026-10-06 发布 EmbeddingGemma 2，将文本（含代码）、图像、视频和音频映射到共享向量空间，面向本地搜索与检索增强生成（RAG）。官方已给出模型权重下载入口；公告中的 Gemini Enterprise Agent Platform Model Garden 支持仍标为即将提供。[发布公告](https://blog.google/innovation-and-ai/technology/developers-tools/embeddinggemma-2/)
+### Haiku 5.5：短任务的价格值得重新算
 
-**模型规格与开放范围。** Google 的模型卡及官方权重页列明 Apache 2.0 许可。完整模型为 7.4 亿参数，纯文本配置为 2.7 亿参数，视觉和音频编码器可按需加载；共享上下文为 8,192 token，默认向量为 768 维，可截短到 512、256 或 128 维。[模型卡](https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2) · [Google 官方权重页](https://huggingface.co/google/embeddinggemma-2)
+Anthropic 在 **10 月 7 日**发布 Haiku 5.5，加入可调 effort。Claude API 的标准价格为每百万 token：提示不超过 100,000 token 时，普通输入 **0.10 美元**、输出 **0.50 美元**；超过门槛分别为 **0.50、2.50 美元**。门槛包含缓存读写 token，缓存、工具和地域等费用另算。[发布公告](https://www.anthropic.com/claude-haiku-5-5) · [价格文档](https://platform.claude.com/docs/en/about-claude/pricing)
 
-**项目方报告的限制。** 模型卡提醒，截短向量后需要重新归一化；128 维会明显损失多模态质量，更适合文本任务。它还要求使用 bfloat16 或 float32，避免 float16 导致 NaN 或静默质量退化。本期没有独立运行模型或复现厂商评测，不把公告里的领先性表述当作独立验证结果。[模型卡](https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2)
+它给摘要、分类和抽取等高频任务提供了新的成本选项。迁移时仍要按新 tokenizer 重算输入，并检查配置兼容性；便宜的 token 不自动等于便宜的成功任务。[迁移指南](https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide)
 
-## 为什么值得关注
+### Qwen‑Image‑2.1‑Turbo：8 步生图，也能编辑
 
-以下是编辑判断：
+Qwen 官方仓库在 **10 月 9 日**宣布 Turbo 版本。模型卡列明，它沿用 7B 视觉生成架构，以 **8 个去噪步骤**完成文生图和图像编辑，并随权重保存推荐采样配置。对需要反复试构图、改素材的人，这是比单张精选样图更值得实际测量的变化。[发布日期与项目说明](https://github.com/QwenLM/Qwen-Image-2.1) · [官方模型卡](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo)
 
-- **云端方案值得比较“每个成功任务的成本”。** Haiku 的价格变化给高频短任务提供了新的候选，但 token 数、重试、工具调用和人工返工都可能改变最终支出。更有用的比较是在相同质量门槛下，用自己的样本测完成率、延迟和总费用。
-- **端侧方案值得从检索环节试起。** EmbeddingGemma 2 的模块化结构和统一向量空间，给本地混合媒体索引提供了可试验的组件。是否省内存、是否足够快，要把编码器、索引和后续生成模型一起计算；仅在本地生成向量，也不能证明整条应用链路都不上传数据。
-- **两项发布共同提示一种工程选择：按工作环节选模型。** 摘要或分类可以评估云端小模型，私有资料的召回可以评估端侧嵌入模型。这个组合只是待验证的设计思路，本期没有测试二者的集成效果。
+但不要把“8 步”换算成未经测试的秒数或质量结论。权重采用 **Qwen Research License**，协议限定非商业研究或评估，商业使用需另获许可；不能按无条件商用的开放模型处理。[许可原文](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo/blob/main/LICENSE)
 
-## 还需要观察
+### EmbeddingGemma 2：先把本地资料找对
 
-1. Haiku 5.5 在中文摘要、结构化抽取及多轮工具调用中，相对现有方案的成功率和实际账单怎样？提示跨过 100,000 token 门槛时是否仍划算？
-2. EmbeddingGemma 2 在中文音频、截图和视频片段上的检索效果如何？不同设备、量化方式及向量维度，会怎样影响召回率、峰值内存和延迟？
-3. 两种方案都需要业务样本验证。平台上线声明、模型规格和项目方测试，尚不能替代真实应用中的独立评估。
+Google **10 月 6 日**发布的 EmbeddingGemma 2，将文字、图像、音频和视频放进共享向量空间，面向本地搜索与 RAG；完整模型 7.4 亿参数，纯文本配置 2.7 亿参数，采用 Apache 2.0 许可。部署时应遵循模型卡的精度要求，使用 bfloat16 或 float32，避免 float16 导致 NaN 或静默质量退化。[发布公告](https://blog.google/innovation-and-ai/technology/developers-tools/embeddinggemma-2/) · [模型卡](https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2)
 
-## 来源
+**看点。** 这三项进展对应生成文本、生成图片和检索资料，不能排进同一张“谁更强”的榜单。更实用的选择是按工作环节分配模型，再用自己的中文材料、图片任务和设备测质量、时延与总成本。
 
-以下均为原始来源；查阅日期统一为 2026-10-12（Asia/Shanghai）。动态文档未标注日期时，不推断其首次发布时间。
+## 05 · AI 数学研究：公开的证明材料，也包括公开的纠错
 
-1. [Anthropic：Introducing Claude Haiku 5.5](https://www.anthropic.com/claude-haiku-5-5)
-   发布日期：2026-10-07；对应事件日期：2026-10-07。
-2. [Claude Platform Docs：Pricing](https://platform.claude.com/docs/en/about-claude/pricing)
-   发布／更新日期：页面未标注；引用本次查阅时的费率与门槛规则。
-3. [Claude Platform Docs：Claude Haiku 5.5 migration guide](https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide)
-   发布／更新日期：页面未标注；引用本次查阅时的迁移与平台限制。
-4. [Google：EmbeddingGemma 2: an open, lightweight multimodal embedding model](https://blog.google/innovation-and-ai/technology/developers-tools/embeddinggemma-2/)
-   发布日期：2026-10-06；对应事件日期：2026-10-06。
-5. [Google AI for Developers：EmbeddingGemma 2 model card](https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2)
-   首次发布日期：页面未标注；页面标注最后更新：2026-10-06 UTC。
-6. [Google 官方模型仓库：google/embeddinggemma-2](https://huggingface.co/google/embeddinggemma-2)
-   首次发布日期：页面未标注；用于交叉核对模型身份、许可和规格。
-7. [llama.cpp：b11552 发布记录](https://github.com/ggml-org/llama.cpp/releases/tag/b11552)
-   发布／事件日期：2026-10-10 19:52 UTC，折合 2026-10-11 03:52（Asia/Shanghai）；预发布状态与时间由 GitHub Releases 元数据交叉核对。
-8. [llama.cpp：server: leave a busy slot untouched when a request pins it，PR #30295](https://github.com/ggml-org/llama.cpp/pull/30295)
-   创建日期：2026-10-10；合并日期：2026-10-10（UTC）；用于核对修复条件、回归测试声明与未确认范围。
-9. [Ollama：v0.40.3 发布记录](https://github.com/ollama/ollama/releases/tag/v0.40.3)
-   发布／事件日期：2026-10-11 01:39 UTC，折合 2026-10-11 09:39（Asia/Shanghai）；时间由 GitHub Releases 元数据交叉核对。
-10. [Ollama：server: skip local model compatibility migration，PR #18908](https://github.com/ollama/ollama/pull/18908)
-    创建／合并日期：2026-10-09（UTC）；用于核对后台迁移变更的原因，不将合并日写成版本发布日期。
-11. [Tibo（@thsottiaux）：reset 完成声明，X 原帖](https://x.com/thsottiaux/status/2109132167112782291)
-    发布日期：2026-10-11 04:01 UTC，折合 2026-10-11 12:01（Asia/Shanghai）；查阅日期：2026-10-12。
-12. [Tibo（@thsottiaux）：Global reset by EOD，X 原帖](https://x.com/thsottiaux/status/2109045392684032299)
-    发布日期：2026-10-10 22:16 UTC，折合 2026-10-11 06:16（Asia/Shanghai）；查阅日期：2026-10-12。
-13. [Tibo（@thsottiaux）：Pro 用量方案投票，X 原帖](https://x.com/thsottiaux/status/2109152716954222849)
-    发布日期：2026-10-11 05:22 UTC，折合 2026-10-11 13:22（Asia/Shanghai）；查阅日期：2026-10-12。
+OpenAI 在 **10 月 6 日**发布由未公开内部模型生成的一批数学研究材料，并提供部分 Lean 形式化证明，供计算机检查。查阅时，官方仓库列出 **719 篇稿件、372 个结果家族**，并注明约 **42% 的主结果已形式化**；稿件数量不是被独立确认的突破数量。[发布公告](https://openai.com/index/sharing-ai-progress-in-mathematics/) · [原始仓库](https://github.com/openai/math)
 
+更值得一起看的，是 **10 月 7 日的修订记录**：一个符号错误影响了相关论证及依赖它的构造，项目撤回 3 篇稿件；另外 14 篇得到证明修复、陈述或引用等修订。仓库保留旧版与撤稿说明，也明确提醒部分未形式化结果可能存在问题。[公开修订记录](https://github.com/openai/math/blob/main/history.md)
+
+**看点。** 本期认为，公开论文、证明代码和纠错历史，比只给出一个“数学能力提升”的分数更有讨论价值。它让问题变得可追问：究竟验证了哪条陈述，用了哪些假设，哪些部分仍待审查？本期没有运行 Lean 或独立审定这些数学结果，也不将形式化比例视为整批成果正确性的保证。
+
+## 接下来值得追问
+
+把这些更新放在一起，本期最关注的不是多了几个模型名字，而是 AI 能否稳定完成一件事：
+
+1. **交互与交付：** 自动生成的界面和跨软件代理，能否减少用户来回解释、人工接管和返工？
+2. **速度与费用：** Ultrafast、低价小模型和本地组件，哪一种能在相同质量要求下完成更多工作？
+3. **验证与纠错：** 产品是否留下足够的来源、操作记录和测试材料，让用户发现问题后能追溯、修正？
+
+## 来源与核查说明
+
+正文链接均指向官方公告、官方文档、原始仓库或作者本人原帖，查阅日期统一为 **2026-10-12（Asia/Shanghai）**。公告及事件日期已在对应段落标明；价格、用量、迁移指南和模型卡等动态资料，引用的是本次查阅版本，不把抓取日期当发布日期。EmbeddingGemma 2 模型卡标注最后更新为 2026-10-06 UTC；Qwen 许可文本的版本日期为 2026-09-20，不是 Turbo 的发布日期。
+
+本期重点覆盖最近一周的产品与研究变化，不声称这些消息都发生在 10 月 11 日。文中“看点”为编辑判断；未独立复现厂商性能结果、逐账户检查功能开放，或运行模型与证明测试。未取得可核验原帖的传闻不收入正文。
+
+[重整前完整版本](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-12-0708.md)已原样归档，包含此前的本地推理运行时更新与详细技术备注。
