@@ -1,187 +1,193 @@
 # AI 前沿札记
 
-> 更新日期：2026-10-17（Asia/Shanghai） · 第 006 期
+> 更新日期：2026-10-18（Asia/Shanghai） · 第 007 期
 >
-> 信息范围：以 2026-10-16 至 10-17 已可查的一手更新为主；功能介绍、正式开放与后续优化分别注明，不把旧项目上榜当成当天发布。
+> 信息范围：以 2026-10-17 的实质更新为主，补录 10 月 16 日尚未报道的产品、模型和文档变化；明确区分发布时间、后续澄清与今日上榜。
 >
-> 新闻核查截止：2026-10-17 16:16（北京时间，UTC+8）；GitHub 榜单独立采样于 16:05。来源仅标日期时保留原日期，不补写发布时刻。
+> 新闻查阅：2026-10-18 晚间（北京时间，UTC+8）；GitHub 日榜独立采样于 20:59。来源只标日期时保留原日期，不补写时刻。
 
-## 本期关注：Beam 开放权重，Tibo 改善有效用量，再看 GitHub 上谁在快速增长
+## 本期关注：DeepSeek 更新模型与搜索接口，Agent 开始补齐交付细节
 
-今天的主线是 **AI 如何把能力交付成可用的工具**：Reflection 把 Beam 从预告推进到权重发布；Tibo 通过缓存与路由降低重复工作的消耗；生成幻灯片、学习材料和结构化决策，也各自找到更具体的产品入口。与此同时，技术出口、软件竞争与岗位变化提醒我们，部署方式和组织能力同样重要。
-
-本期开始增加固定栏目 **“每日 GitHub AI 热点”**。除了报增星数，更关心项目能解决什么问题、需要什么资源，以及许可证和安全边界。
+今天最明确的新变化来自 **DeepSeek V4.1-Flash-1017**：模型已经进入官网、App 和 API，搜索与网页抓取也开放成独立接口。另一条主线是工具的可控性：Claude Code 修复失败状态和重复执行，OpenAI 开放文字定制声音，Dory 探索可调推理计算，MOSS-Image 与 Meshy 把编辑意图表达得更具体。Google 的新说明则提醒我们，连接资料后产生的摘要也属于需要管理的数据。
 
 **先看这五件事：**
 
-- **Tibo Day 12：** 上下文复用、缓存保留和请求路由改善有效用量；此次没有宣布新的 reset 或统一配额涨幅。
-- **Beam 正式到手：** 501B 级模型权重以 Apache-2.0 发布，但激活参数少不等于部署内存小。
-- **工作流更具体：** ChatGPT 并行代理与协作幻灯片开始推出；Perplexity 的低价模型专门返回决策概率。
-- **出海规则值得立即读原文：** 中国 AI 技术出口目录仍在征求意见，相关临时登记已经启动；英国则对微软软件生态与 AI 竞争展开咨询。
-- **GitHub 新栏目：** 日榜关注 VoiceStudio、XERJ、Claude 插件目录、context-mode、CLI-Anything；另看视频工具 HyperFrames 的周榜增长。热度与质量分开判断。
+- **DeepSeek 1017 升级：** 编码与 Agent 基准改善来自厂商自测；已有 API 别名的调用方，应重新做任务回归。
+- **搜索成本单独算：** Search、Fetch 各每千次成功请求 0.75 美元；指定编码工具中的服务端调用另有截至 11 月 1 日零点的免费期。
+- **代理可靠性：** Claude Code 扩大 fork 子代理的默认范围，并修复云任务失败误报完成和重复重跑。
+- **新模型也看使用条件：** Dory 的推理框架支持仍在 PR 阶段；MOSS-Image 的 5B 是生成骨干规模；文字创建声音免费，不等于语音生成免费。
+- **GitHub 今日热点：** 求职工作流 AI Job Search、编码代理 OpenCode、多代理工作台 Orca 是本栏新观察；VoiceStudio 与 Claude 插件目录继续上榜。使用求职工具前尤其要检查仓库是否公开。
 
-## 一、从模型能力到每天可用的产品
+## 一、模型与开发接口：变化落在任务成本和实际调用上
 
-### 01｜Tibo Day 12：让同一份额度少花在重复上下文上
+### 01｜DeepSeek V4.1-Flash-1017：模型已升级，接入方要检查真实任务
 
-北京时间 **10 月 17 日 07:55**，Thibault Sottiaux（Tibo，@thsottiaux）发布 Day 12 更新，称团队通过**跨子代理复用上下文、延长缓存保留、改善路由以提高缓存命中率**，改善 Codex / Work 的有效用量。帖子没有给出统一提升百分比，也没有宣布本轮 reset、套餐名义额度增加或 API 降价。
+DeepSeek **10 月 17 日**发布 V4.1-Flash-1017，官网、App 和 API 均已更新。官方文档目前把 `deepseek-flash` 指向该版本；旧的 `deepseek-v4-flash`、`deepseek-v4-flash-vision-exp` 名称仍接受请求，但实际服务的是新版本。仓库与权重采用 **MIT** 许可，模型支持图文输入。
 
-同一轮产品更新里，OpenAI **10 月 16 日**的正式日志确认：Chat 中的 **GPT‑6 Pro** 改善响应速度与工具使用，并能让多个代理并行处理任务，用户可查看进度和已完成任务。这项更新正向符合条件的 Pro 用户推出；受管理工作区还取决于管理员设置和 rollout 资格。
+模型卡报告的部分变化如下，**均为 DeepSeek 公布的成绩，本期未复现**：
 
-**解读：** 多代理很容易重复读取同一批背景资料，缓存优化有机会让较长任务做得更划算；并行则主要缩短可拆分任务的等待。两者都不能自动推出“所有任务成本下降”或“代理越多越好”。更有价值的观察是：同一任务集的完成率、总用量和等待时间是否一起改善。
+| 基准 | 上一版 V4.1-Flash | 1017 版 |
+| --- | ---: | ---: |
+| Terminal-Bench 4.0 | 31.2 | 42.3 |
+| DeepSWE v1.1 | 74.2 | 77.0 |
+| ProgramBench | 20.3 | 29.1 |
 
-来源：[Tibo Day 12 原帖](https://x.com/thsottiaux/status/2111244596131111253)、[本人关于 Pro 改善的补充](https://x.com/thsottiaux/status/2111244957851984181)、[OpenAI 10 月 16 日更新日志](https://help.openai.com/en/articles/6825453-chatgpt-release-notes)。X 主帖时间按帖子 ID 核算为 2026-10-16 23:55 UTC，上文换算北京时间；正文已在原帖核对。查阅：2026-10-17。
+其中 Terminal-Bench 使用 Claude Code harness，DeepSWE 使用 Mini-SWE-V2。官方还称任务完成更快、输出更短；这不等于所有业务的成功率或账单会同比改善。自部署也要留意：发布包没有 Jinja 格式聊天模板，而是提供 Python 编码参考实现及配套 Rust 工具库；不要仅替换权重后沿用未经检查的提示格式。
 
-### 02｜Reflection Beam：从预告变成可下载、可部署的开放权重模型
+**解读：** 这轮更新值得用已有项目的失败案例来测，而不是只看新演示。固定任务、代理框架、工具权限与预算，比较完成率、等待时间和总费用，才能判断升级是否真正有用。API 别名自动指向新模型，也意味着“代码没变”并不能保证行为完全不变。
 
-Reflection **10 月 16 日**正式发布 Beam 权重。**10 月 5 日**是模型介绍与早期接入，此次的新变化是 BF16、FP8、NVFP4 权重及投机解码 drafter 到位，Reflection API 也进入 public beta。模型卡列出 **501.3B 总参数、23.4B 激活参数、100 万 token 上下文**，面向文本输入输出，主要为英语开发，权重采用 **Apache-2.0**。
+来源：[10 月 17 日官方公告](https://api-docs.deepseek.com/news/news261017/)、[模型卡与评测条件](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017)、[当前模型名与价目](https://api-docs.deepseek.com/quick_start/pricing/)、[MIT 许可证](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/main/LICENSE)。发布：2026-10-17；动态文档及模型卡查阅：2026-10-18。
 
-配套 Mirror CLI 支持恢复会话、在独立 worktree 中运行并行代理，以及人工批准工具调用。自蒸馏 recipes 仍计划在随后几天发布，不能把整套定制方案都算作已经交付。
+### 02｜DeepSeek Search / Fetch 开放：给 Agent 补上可单独计费的网页入口
 
-**解读：** 对希望控制部署环境的团队，权重、推理格式与工具链同时出现，比孤立的排行榜名次更有用。但 23.4B 激活参数不是显存预算：模型总权重、KV cache、量化和并发仍决定成本。官方关于推理 token 效率的比较未经本期复测，不能直接当成自己的账单折扣。
+同一轮 **10 月 17 日**公告开放了两种接口：**Search** 返回结构化搜索结果，**Fetch** 获取单个网页并返回 Markdown。两者分别按成功请求计费，各为 **每 1,000 次 0.75 美元**；失败请求、空搜索结果和超时不收费，返回结果数量不改变单次请求价。
 
-来源：[10 月 16 日正式发布](https://reflection.ai/blog/beam-is-available)、[模型卡与权重](https://huggingface.co/reflection/Beam-1.0-501B-A23B)、[10 月 5 日预告](https://reflection.ai/blog/introducing-beam)。查阅：2026-10-17。
+两个接口各自有账户级 **5 QPS** 限制；Fetch 还受目标域名限流与网站访问政策约束。这里的 QPS 与模型并发数不是同一个指标。
 
-### 03｜幻灯片与学习材料：生成之后，开始支持继续改、一起做
+一个容易误读的条件是免费期：通过 **DeepSeek API** 在 DeepSeek Harness、Claude Code、Codex 中使用的相关服务端工具调用，目前免费，**2026 年 11 月 1 日 00:00（北京时间）**开始按请求收费。不能据此说所有独立 Search / Fetch 请求在此前都免费，也不是这些编码产品本身提供了无限免费搜索。
 
-**ChatGPT Slides：** OpenAI **10 月 16 日**开始向具有 Space 访问权的合资格 Pro、Business、Enterprise 用户分批推出，支持网页与桌面。用户可以从材料或大纲生成幻灯片，在 Space 实时共同编辑与评论；网页可导出 PowerPoint、PDF 或 Google Slides，桌面可调用已安装的 PowerPoint / Keynote。
+**解读：** 对检索增强和研究型 Agent，这给了模型之外的另一项可比较成本。应记录一次任务究竟触发多少搜索、多少抓取，以及空结果和重试比例；模型 token 便宜之后，工具调用仍可能成为重要开支。搜索排序和网页内容也需核验，接口返回“相关”不等于事实可靠。
 
-**Gemini Notebook：** Google 同日介绍近期上线的学习功能：60 秒 Short Video Overviews、把总结与测验等串起来的 Interactive Learning Overview，以及简答、多选、填空等自测形式。文章没有给出完整地区、套餐和额度表，也没有说明这些功能都恰在当天首发。
+来源：[发布公告](https://api-docs.deepseek.com/news/news261017/)、[Search & Fetch 使用、计费与限流说明](https://api-docs.deepseek.com/guides/search/)。发布：2026-10-17；文档查阅：2026-10-18。
 
-**解读：** 两者都在把“一次生成”变成可反复使用的材料工作流。做演示要验导出后的布局、图表与字体；学习时则应先自行作答，再用反馈定位知识缺口，不能因为内容依据自己的资料生成就默认答案正确。
+### 03｜Claude Code v2.1.302：多代理默认范围扩大，失败状态也更准确
 
-来源：[ChatGPT Slides 更新日志](https://help.openai.com/en/articles/6825453-chatgpt-release-notes)、[Google 学习功能介绍](https://blog.google/innovation-and-ai/products/gemini-notebook/three-tips-study-gemini-notebook/)。发布：2026-10-16；查阅：2026-10-17。
+北京时间 **10 月 17 日 04:53**，Anthropic 发布 **v2.1.302**。fork 子代理默认启用范围扩展到 headless 模式、Agent SDK、桌面端和 VS Code；桌面端与 VS Code 中，**主会话发起的子代理**统一在后台运行。子代理继续发起的 Agent 调用另有默认行为，不能概括成所有层级都后台执行。
 
-### 04｜Perplexity Decider v1.2：把分类、路由与打分做成便宜的概率接口
+这次还修复了两类会影响信任的问题：云端 routine 异常停止却显示 Completed，以及任务中途失败后隔一段时间从头重跑、可能重复发布同一报告。
 
-Vercel **10 月 16 日**宣布 Decider v1.2 与 Flash 接入 AI Gateway。它们接收文字、JSON 或图像，返回是非判断、选项或评分的概率，适合分类和路由，**不生成文章或代码**。
+**解读：** 多代理产品的进步不仅是多开几个窗口，还包括何时等待、何时失败、重试是否重复产生副作用。把它接进自动化时，应同时检查日志、实际文件与外部结果；界面显示完成只是一个信号。已有工作流也应回归测试取消、断线恢复与重复执行，而不只测试一次成功路径。
 
-Perplexity 官方 Decisions API 文档给出的输入价是：27B 版本 **每百万 token 0.02 美元**，4B Flash **0.01 美元**，输出免费。这是该 API 的价目，不据此概括所有转售渠道的最终费用。文档还列出小于 256K 的输入限制，以及组织共享的 **10 次请求/秒**上限；同批问题会共享上下文，也可能互相影响。
+来源：[官方版本说明](https://github.com/anthropics/claude-code/releases/tag/v2.1.302)。GitHub API 发布时刻：2026-10-16 20:53:06 UTC；上文换算北京时间。查阅：2026-10-18。
 
-**解读：** 先由小模型判断是否需要调用昂贵代理，可能比每条输入都交给大模型更经济。不过概率不是“保证正确率”，阈值需要在本业务数据上校准；涉及人的高影响决策，不能仅凭一个分数自动处置。本期报道的是服务可用性，不承诺所有权重仓库都可直接匿名下载。
+### 04｜OpenAI prompt-to-voice：文字创建声音已正式开放，使用仍按会话收费
 
-来源：[Vercel 原始上线记录](https://vercel.com/changelog/perplexity-decider-v1-2-models-now-available-on-ai-gateway)（发布：2026-10-16）、[Perplexity API 文档与价格](https://docs.perplexity.ai/docs/decisions/quickstart)（动态文档）。查阅：2026-10-17。
+OpenAI **10 月 16 日**将 prompt-to-voice 向所有 API 客户正式开放。开发者可以用文字描述创建并保存声音，再用于 GPT-Live 会话；**创建免费，语音生成按正常 GPT-Live 会话计费**，每个组织最多保存 **100 个**此类声音。同期增加德语、法语、印地语、日语和韩语的 **9 种**声音。
 
-## 二、视觉与科学：演示之后，还要把系统跑起来
+这是声音定制能力的开放，与第 005 期报道的 GPT-Live-1.1 模型更新不同。文字生成的声音目前只适用于 **GPT-Live**，不支持传统 Text to Speech、Realtime 或 Chat Completions 音频接口；从录音创建声音则是另一套流程与条件。
 
-### 05｜Matrix-Game 4.0 跟进：新增消费级显卡优化，但吞吐不是端到端体验
+**解读：** 为助手设计稳定的声音身份更方便了，但仍要测试口音、发音与长对话表现。官方要求使用成年声音、不得冒充他人，并告知听众语音由 AI 生成；创建出的声音也不保证独一无二。声音定制的开放，不能推导成 Live 1.1 已向 API 发布。
 
-Skywork 在 **10 月 16 日**为 Matrix-Game 4.0 增加 RTX 5080 / 5070 Ti 优化推理和技术报告。这是 **10 月 15 日首发后的增量**。官方在固定提示词、使用 SageAttention、864×480 分辨率等条件下，报告稳态模型吞吐最高约 **67 / 58 FPS**，明确排除视频 I/O。
+来源：[10 月 16 日正式发布记录](https://openai.com/products/release-notes/)、[自定义声音文档与限制](https://developers.openai.com/api/docs/guides/custom-voices)。发布：2026-10-16；查阅：2026-10-18。
 
-v4 代码与已发布场景权重采用 **Apache-2.0**；训练代码和训练数据没有一并开放，运行需要项目的专用推理代码；第三方组件与音频保留各自条款。系统仍由游戏引擎负责规则与物理，视频模型承担神经渲染。
+## 二、小模型与创作工具：让计算和修改更可控
 
-**解读：** 消费卡优化降低了试验门槛，适合关注可交互生成内容的开发者。但模型吞吐不等于玩家的输入延迟、完整画面帧率或长期场景一致性。把一小段操作循环跑通，比仅看最高 FPS 更能判断能否接入自己的游戏或仿真。
+### 05｜NVIDIA Dory1.0-4B：复用层堆栈，把推理计算变成可调参数
 
-来源：[仓库更新记录](https://github.com/SkyworkAI/Matrix-Game)、[v4 推理条件与许可](https://github.com/SkyworkAI/Matrix-Game/blob/main/Matrix-Game-4/README.md)、[模型卡](https://huggingface.co/Skywork/Matrix-Game-4.0)。更新：2026-10-16；查阅：2026-10-17。
+NVIDIA 的模型卡将 **Dory1.0-4B** 发布日列为 **10 月 16 日**。它是 **4B 参数、最高 256K 上下文**的文本模型，支持语言列为英语，采用 **OpenMDW 1.1** 许可，提供 BF16、MXFP8、NVFP4 和 GGUF 等格式。
 
-### 06｜Google VERID：让实验智能体知道实验台上实际发生了什么
+其特点是反复运行共享的层堆栈，同一份权重可改变循环次数，在推理计算与效果之间选择。模型卡建议从两次循环起步，并提供 last-loop KV cache 模式以控制缓存增长。相关效果是 NVIDIA 的报告，不应写成每多循环一次都必然提升准确率。
 
-Google Research **10 月 16 日**介绍自主湿实验的基础研究。VERID 用有状态的实验室数字孪生跟踪设备与物料，先模拟检查操作，再发出硬件指令，并保留日志与视频，让失败反馈和状态恢复进入闭环。
+**解读：** 对预算有限的本地任务，“按题目调计算量”比一律加载更大模型更值得试验。不过，截至查阅时，Dory 对应的 **vLLM 支持仍为 Open PR，llama.cpp 为 Draft PR，两者均尚未合并**，文档要求使用指定源码，不能当作普通稳定版本开箱即用。部署评估要同时测端到端延迟、内存和任务正确率，较少输出 token 也不一定意味着较少实际计算。
 
-它仍是**有人监督的研究原型**：VERID 的三项基础验证使用染料与水，配套分子实验仍有研究人员审核序列、协议并监督机器人。基于开源 PyLabRobot 也不等于 VERID 本身已经开放全部代码。
+来源：[NVIDIA 原始模型卡](https://huggingface.co/nvidia/NVIDIA-Nemotron-Labs-Dory1.0-4B-BF16)、[vLLM 支持进展](https://github.com/vllm-project/vllm/pull/60149)、[llama.cpp 支持进展](https://github.com/ggml-org/llama.cpp/pull/30306)。发布：2026-10-16；模型卡、许可声明与 PR 状态查阅：2026-10-18。
 
-**解读：** 上一期的抗菌肽工作流主要展示候选设计，这次往前推进的是“计划如何落到真实操作”。科学 Agent 的价值不能只看建议是否聪明，还要看能否发现移液失败、记录异常并安全恢复。本期不把配套结合实验解读为临床有效性或全自主实验室已经建成。
+### 06｜MOSS-Image：用 JSON 指定文字和物体的位置
 
-来源：[Google Research 原始研究说明](https://research.google/blog/grounding-ai-agents-in-biological-reality-building-blocks-for-autonomous-wet-labs/)、[VERID 论文](https://www.gstatic.com/science-ai/verid_semantic_lab.pdf)。发布：2026-10-16；查阅：2026-10-17。
+OpenMOSS **10 月 16 日**公开 MOSS-Image-Base、MOSS-Image-SFT 的代码与权重。系列使用 **5B 生成骨干**，支持最高 **4K token** 提示词；除了自然语言，还能用 JSON 描述文字、对象及其边界框，让版式意图进入生成输入。SFT 版是在 Base 上用精选数据微调，沿用相同架构与推理管线。
 
-## 三、规则与工作：AI 的边界也在变化
+两份官方模型卡将权重与配套推理代码列为 **Apache-2.0**；独立 pipeline 代码同为 Apache-2.0。使用时仍需分别检查第三方组件条款。官方快速开始要求 Python 与 CUDA 环境，也提供 ComfyUI 插件；其进入 ComfyUI 官方仓库的集成仍在推进。
 
-### 07｜中国 AI 技术出口目录征求意见，相关临时登记已启动
+**解读：** 对海报、信息图和带文字的素材，明确写出“放在哪里”有助于减少纯提示词反复试错。但 5B 只是骨干，不是整条生成管线的完整显存预算；指定坐标也不保证文字无误、排版完全遵从。应按真实输出尺寸检查中文、遮挡与局部修改后的稳定性，再决定是否适合生产。
 
-商务部、科技部 **10 月 16 日**发布第 48 号公告，拟增列 40 项技术，其中 AI 相关 **23 项**，意见征集至 **11 月 15 日**。要分清两个状态：目录修订仍在征求意见；**附件范围内相关技术出口的临时登记，自公告发布日起执行**，已开始但尚未完成的出口也在登记范围内。
+来源：[官方仓库与发布日期](https://github.com/OpenMOSS/MOSS-Image)、[项目说明](https://openmoss.ai/MOSS-Image/)、[Base 模型卡](https://huggingface.co/OpenMOSS-Team/MOSS-Image-Base)、[SFT 模型卡](https://huggingface.co/OpenMOSS-Team/MOSS-Image-SFT)。发布：2026-10-16；查阅：2026-10-18。
 
-官方解释区分了不同出海方式：拟议规则下，限制类技术的海外本地化部署属于管理范围；海外自有云等情形可适用自动许可便利。API、网页 / App 交互、SaaS 及端侧轻量化部署，不属于其所述大模型技术出口管理范围；已通过开源或论文进入公共领域的相关技术拟不纳管。
+### 07｜Meshy Edit：3D 模型可以选中局部再改
 
-**解读：** 对开发者最重要的不是把消息浓缩成“开源被禁”或“出海不受影响”，而是核对技术指标、转移方式与接收方。企业应据公告附件判断是否涉及登记，并就具体安排寻求合规意见。本期仅梳理原文，不对某个模型或交易给出法律适用结论。
+Meshy **10 月 16 日**上线 Meshy Edit，首个工具是局部编辑，向所有注册用户开放，适用于**多数在 Meshy 生成的模型**。用户选中模型的一部分，再用文字或参考图要求添加、移除或替换；官方将保留其余部分作为核心能力，而不必每次重新生成整件模型。
 
-来源：[两部门公告与附件入口](https://www.mofcom.gov.cn/zcfb/dwmygl/art/2026/art_61446ab4beee4f63973d4d0ab3097648.html)、[商务部答记者问](https://www.mofcom.gov.cn/zwgk/zcjd/art/2026/art_b11d5c1e9374421e93e85dc87eba6e38.html)。发布：2026-10-16 16:00（官方页面时间）；查阅：2026-10-17。
+**解读：** 对已接近可用、只差一个配件或细节的资产，这比从头再抽一次结果更贴近制作流程。但官方也说明结果因编辑而异，删除部件尤其可能需要多次尝试；本期没有实测网格、材质和动画兼容性。开放使用不等于所有操作免费，也不代表可以省略对拓扑和导出结果的检查。
 
-### 08｜英国 CMA：办公软件中的 AI 竞争，也涉及接入权和迁移成本
+来源：[Meshy 产品原始说明](https://www.meshy.ai/blog/meshy-edit)、[公司发布稿](https://www.prnewswire.co.uk/news-releases/meshy-debuts-new-in-house-ai-model-with-meshy-edit-letting-users-change-selected-parts-of-a-3d-model-with-one-prompt-302911274.html)。发布：2026-10-16；查阅：2026-10-18。
 
-英国竞争与市场管理局（CMA）**10 月 16 日**提出，将微软商业软件生态认定为具有战略市场地位，并就此咨询。其路线图关注第三方 AI 能否与 Copilot 公平竞争、产品捆绑、互操作，以及软件跨云部署的许可条件。
+## 三、资料连接与动态观察：把证据边界写清楚
 
-**解读：** 企业购买 AI 办公工具，除了模型质量，还要考虑能否换模型、带走数据、对接现有系统，以及换云后是否付出额外许可成本。此次是拟认定与咨询，不能写成终局处罚、强制拆分或全部义务已生效；后续应看正式决定和具体措施。
+### 08｜Google 补充个人内容连接说明：摘要和摘录也要计入隐私判断
 
-来源：[CMA 官方公告](https://www.gov.uk/government/news/cma-takes-first-steps-to-ensure-choice-in-business-software)、[案件与路线图](https://www.gov.uk/cma-cases/microsofts-business-software-ecosystem)。发布：2026-10-16；查阅：2026-10-17。
+Google 于 **10 月 16 日**在一篇 2025 年的 Workspace 文章中补充说明：用户选择把内容应用连接到其他 Google 服务后，相关数据会用于个性化，部分数据也可能依设置用于生成式 AI 训练。这里的新变化是**说明的增补**，不是全部相关功能当天首发。
 
-### 09｜Anthropic 内部就业研究：写得更多之后，谁来审、谁来协调？
+其 Search 帮助页面面向**个人 Google 账号主动连接内容应用**的场景。Google 表示不会直接用整个邮箱或相册库训练，但回答中使用的摘要、摘录、生成内容与推断，以及交互记录，可能用于训练和人工审查；短邮件的“摘要”有时就是原文。帮助页还明确，断开应用或删除源文件不会自动删除 Search Services History。
 
-Anthropic **10 月 16 日**发布内部就业研究，结合员工、工具使用与产出数据及 **17 次访谈**。公司报告称，初级技术岗位在技术招聘中的占比由 **27% 降至 9%**；同时，技术招聘绝对数量仍在增长，其他职能增长更快。公司也观察到员工采用 AI 工具后，多类产出指标上升，更多工作转向代理监控、复核与协调。
+**解读：** 应按具体账号、服务和设置判断，而不能把这概括成企业 Workspace 默认全量邮件训练。连接前值得问：哪些内容会被读取，生成的衍生数据存在哪里，历史记录如何管理？只检查原文件是否删除，可能漏掉后续留下的摘要与交互。
 
-**解读：** 这提供了一个高度采用 AI 的组织样本，但不是全行业就业预测，更不能从同期变化直接推出单一因果。对个人，值得练的是定义任务、核验结果和判断何时升级人工；对团队，则要让新人仍有积累基础技能与承担真实责任的机会，而不只计算节省了多少执行时间。
+来源：[Google 原文中的 10 月 16 日增补](https://blog.google/products-and-platforms/products/workspace/workspace-june-drop-gemini-workspace-apps/)、[Search 服务连接与数据使用说明](https://support.google.com/websearch/answer/16859283)。原文：2025-07-16；增补：2026-10-16；动态帮助页查阅：2026-10-18。
 
-来源：[How employment is changing at Anthropic](https://www.anthropic.com/research/employment-at-anthropic)。发布：2026-10-16；查阅：2026-10-17。
+### 工具观察｜OpenRouter Subagent：把独立子任务交给另一种模型
 
-## 四、每日 GitHub AI 热点：先看用途，再看 Star
+OpenRouter 当前官方文档提供 **Beta 状态的 `openrouter:subagent` 服务端工具**：主模型可在生成过程中，把摘要、抽取、格式转换等自包含任务交给配置好的 worker，再接回结果。本期确认的是文档所述能力，**未找到明确首发日期，不将它称为今天上线**。
 
-**采样时间：2026-10-17 16:05（北京时间，08:05 UTC）。** 以下“日榜增星”“周榜增星”照录 GitHub Trending 的 `stars today` / `stars this week`，不是自行测得的北京时间自然日或精确滚动 24 小时 / 7 天。日榜与周榜不混排，累计 Star 与新增分列。数字会继续变化，**Star 代表关注度，不是安全、质量或成熟度认证**。
+worker 只看到分派的任务描述，不会自动收到主对话，也不保留跨任务记忆。若工具没有指定 worker 模型，会回退到外层请求使用的模型；因此，省钱不是自动发生的。开发者需要明确选型、提供足够上下文，再检查输出是否满足要求。
 
-来源：[GitHub 日榜](https://github.com/trending?since=daily)、[GitHub 周榜](https://github.com/trending?since=weekly)。所有项目文档与许可查阅于 2026-10-17；上榜不代表当天首发。
+**解读：** 这让“大模型负责判断、较小模型处理局部工作”更容易接入，但要比较完整任务的成本与延迟，而不是只比较两个模型的单价。Beta 接口行为仍可能变化，调用失败和返回结果的核验也不能省略。
 
-| 日榜项目 | 日榜增星 | 累计 Star | 主要用途 |
+来源：[OpenRouter Subagent 官方文档](https://openrouter.ai/docs/guides/features/server-tools/subagent)。文档查阅：2026-10-18；首发日期未确认。
+
+### 观察｜Tibo Day 13：发现 reset 线索，本轮未直接核实 X 正文
+
+继续关注 **Thibault Sottiaux（Tibo，@thsottiaux）**。OpenAI Developer Community 的用户汇总与公开存档出现 Day 13 reset 预告；存档还保存了一条后续“Done”。相关帖子 ID 对应北京时间 **10 月 18 日 00:20** 和 **05:12**，但**本轮直接读取 X 失败，完成回复的正文依赖第三方保存本**，因此只列为观察，不作为已核实完成的新闻。
+
+公开存档自身也显示更新暂不可用、正在展示保存帖，不能据此确认他的完整实时动态。套餐范围、个人账号实际恢复情况仍不清楚；如需判断自己是否有额度，应查看账号用量页面。即使一次重置落实，也不能推导永久提高套餐上限或形成固定周期。
+
+核对入口：[Day 13 原帖](https://x.com/thsottiaux/status/2111492673890824348)、[后续回复原链接](https://x.com/thsottiaux/status/2111566005684289735)；本轮可读证据：[社区用户汇总](https://community.openai.com/t/28-days-of-shipping-at-openai/1403897)、[公开保存帖](https://aiidelist.com/codex-reset)。帖子时间由 ID 核算，不能替代正文核实。查阅：2026-10-18。
+
+## 四、每日 GitHub AI 热点：求职、声音与多代理工作台
+
+**采样时间：2026-10-18 20:59（北京时间，12:59 UTC）。** 下表照录查阅时可得的 [GitHub Today 日榜快照](https://github.com/trending)。检索结果标为当日抓取，但未提供准确缓存时刻；`stars today` 不是本刊独立测量的北京时间自然日或精确滚动 24 小时新增。累计 Star 与日榜增星来自同一页面，数字会继续变化。
+
+**上榜不代表当天首发，关注度也不代表安全、质量或成熟度。** VoiceStudio 和 Claude 插件目录是第 006 期的续踪；另外三项为本栏新观察。以下项目文档和许可均查阅于 2026-10-18，本期未安装或实测。
+
+| 项目 | 日榜增星 | 同页累计 Star | 主要用途 |
 | --- | ---: | ---: | --- |
-| [VoiceStudio](https://github.com/debpalash/VoiceStudio) | +2,301 | 71,810 | 本地配音、声音克隆与有声书 |
-| [XERJ](https://github.com/xerj-org/xerj) | +1,648 | 7,200 | 给编码代理索引代码和资料 |
-| [claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | +1,552 | 40,951 | Claude Code 官方插件目录 |
-| [context-mode](https://github.com/mksglu/context-mode) | +449 | 30,343 | 精简工具输出与上下文检索 |
-| [CLI-Anything](https://github.com/HKUDS/CLI-Anything) | +281 | 53,666 | 把已有软件接成代理可用的 CLI |
+| [AI Job Search](https://github.com/MadsLorentzen/ai-job-search) | +2,213 | 51,402 | 岗位筛选、申请材料与面试准备 |
+| [VoiceStudio](https://github.com/debpalash/VoiceStudio) | +2,098 | 74,200 | 本地声音克隆、配音与转写 |
+| [OpenCode](https://github.com/anomalyco/opencode) | +1,417 | 215,925 | 终端与桌面的编码代理 |
+| [Claude 官方插件目录](https://github.com/anthropics/claude-plugins-official) | +1,187 | 42,276 | Claude Code 插件发现与集成 |
+| [Orca](https://github.com/stablyai/orca) | +1,146 | 95,943 | 多编码代理与独立工作树管理 |
 
-| 周榜补充 | 周榜增星 | 累计 Star | 主要用途 |
-| --- | ---: | ---: | --- |
-| [HyperFrames](https://github.com/heygen-com/hyperframes) | +5,601 | 65,510 | 用 HTML 与代码生成、渲染视频 |
+### G1｜AI Job Search：求职材料生成前，先确认仓库不是公开的
 
-### G1｜VoiceStudio：想做配音，先检查声音和模型的授权
+把岗位匹配、定制简历、求职信和面试准备串成 Claude Code 工作流，采用 **MIT**。当前岗位搜索技能偏丹麦市场，迁移到其他招聘市场需要适配；还需相应开发环境与模型服务。
 
-把转写、声音克隆、配音与有声书整合进桌面工作台，适合重复音频生产。支持 CUDA、Apple Silicon MPS 加速；CPU 更慢，模型还需下载，Intel Mac 当前要连接远端后端。
+**门槛与判断：** README 特别警告，公开项目的 fork 仍公开，初始化会把姓名、联系方式、经历和薪资预期写进受 Git 跟踪的文件。实际使用个人资料前，应按项目文档建立私有仓库，避免随提交公开。生成材料也应逐项核实，不能让工具替自己编造经历或未经审阅投递。
 
-**门槛与判断：** 应用为 **AGPL-3.0**，模型权重、声音及输出另有许可，不能笼统说“免费商用”。克隆声音应取得许可，先用获授权的短片段检查质量与资源占用。v0.5.6 发布于 **9 月 23 日**，今日看的是热度，而不是新品首发。
+依据：[README 与隐私提醒](https://github.com/MadsLorentzen/ai-job-search/blob/master/README.md)、[MIT 许可证](https://github.com/MadsLorentzen/ai-job-search/blob/master/LICENSE)。
 
-依据：[README 与硬件条件](https://github.com/debpalash/VoiceStudio#readme)、[许可边界](https://github.com/debpalash/VoiceStudio/blob/main/LICENSE-NOTICE.md)、[版本记录](https://github.com/debpalash/VoiceStudio/releases/tag/v0.5.6)。
+### G2｜VoiceStudio：继续升温，应用许可不等于声音授权
 
-### G2｜XERJ：让代理先检索片段，少读整份代码库
+延续昨日对本地音频工作台的观察。项目支持声音克隆、配音、转写与有声书，适合愿意管理模型及本机资源的创作者；支持 NVIDIA CUDA 和 Apple Silicon MPS，CPU 更慢，Intel Mac 当前需要远端后端。
 
-给代码、文档、日志和 PDF 建索引，通过 MCP 等接口返回相关片段；Rust 单二进制的默认词法检索可离线运行，可选神经嵌入需下载模型。适合大型陌生代码库里的定位与资料查找，采用 **Apache-2.0**。
+**门槛与判断：** 应用为 **AGPL-3.0**，模型权重、声音和输出另有条款。开源应用并不自动赋予克隆他人声音的权利，也不保证所有模型适合商用。重复生产前先用已获授权的短片段测试，检查音色稳定性和资源占用。
 
-**门槛与判断：** 索引也占磁盘与内存。README 示例中的 `--insecure` 会关闭 TLS 和 API-key 认证，不能直接照搬到共享网络。**10 月 16 日**版本仍为 `v1.0.0-rc.96`；应先用非敏感项目比较命中质量、时延和总成本，不把作者实验里的 token 节省当普遍收益。
+依据：[README、硬件与许可说明](https://github.com/debpalash/VoiceStudio/blob/main/README.md)、[应用许可证](https://github.com/debpalash/VoiceStudio/blob/main/LICENSE)。
 
-依据：[README](https://github.com/xerj-org/xerj#readme)、[安全模型](https://github.com/xerj-org/xerj/blob/main/docs/SECURITY_MODEL.md)、[许可证](https://github.com/xerj-org/xerj/blob/main/LICENSE)、[版本记录](https://github.com/xerj-org/xerj/releases/tag/v1.0.0-rc.96)。
+### G3｜OpenCode：规划与执行分开，先看实际权限
 
-### G3｜claude-plugins-official：官方入口不等于替所有插件担保
+**MIT** 许可的编码代理，提供终端与桌面入口。README 区分默认的 build 开发模式与 plan 规划模式：plan 默认拒绝文件修改，运行 bash 前请求许可；桌面版仍标注 **Beta**。
 
-Anthropic 管理的 Claude Code 插件目录，包含自有、合作方与社区插件，适合按实际开发任务寻找 Skills、MCP 与工作流集成。需要 Claude Code，外部服务可能另收费或需要账号权限。
+**门槛与判断：** 适合想在不同模型和交互方式之间选择的开发者，模型服务费用另算。先在副本或独立分支完成一个有测试的小任务，检查命令、差异和测试结果；模式名称不等于完整安全隔离，也不能替代代码审查。
 
-**门槛与判断：** 根目录为 **Apache-2.0**，链接出去的插件仍应逐项核对。README 明确提示，目录维护方不能控制所有插件的 MCP 服务、文件和外部软件。先看源码、权限和数据流，再安装与任务直接相关的少量插件，比一次性装满更可靠。
+依据：[README 与代理说明](https://github.com/anomalyco/opencode/blob/dev/README.md)、[MIT 许可证](https://github.com/anomalyco/opencode/blob/dev/LICENSE)。
 
-依据：[README](https://github.com/anthropics/claude-plugins-official#readme)、[插件清单](https://github.com/anthropics/claude-plugins-official/blob/main/.claude-plugin/marketplace.json)、[根目录许可证](https://github.com/anthropics/claude-plugins-official/blob/main/LICENSE)。
+### G4｜Claude 官方插件目录：继续跟踪，逐个检查数据去向
 
-### G4｜context-mode：压缩工具输出，也要看权限和许可
+Anthropic 维护的插件目录，将自有插件与外部合作方、社区插件区分。根目录采用 **Apache-2.0**，链接出去的插件仍需核对各自 LICENSE，外部服务可能需要账号、权限或费用。
 
-借助 MCP、子进程与 SQLite FTS5，先处理、索引长日志、网页和测试输出，再把相关片段送回代理。当前要求 **Node.js 22.5+**，适合工具输出经常挤满上下文的任务。
+**门槛与判断：** 官方 README 提醒，维护方无法控制所有插件中的 MCP 服务、文件和其他软件。目录收录有助于发现工具，却不是对所有依赖的安全保证。更适合按具体任务选少量插件，并先查看源码、权限和数据流。
 
-**门槛与判断：** 子进程可能继承已认证 CLI 的环境与配置，不能把“sandbox”名称当成强安全隔离。当前 **Elastic License 2.0** 属于源码可用许可，有托管服务等限制，不应当作普通宽松开源。项目宣传的压缩比例也不等于总账单同比下降；应同时检查检索遗漏、任务正确率和总 token。
+依据：[README 与风险提示](https://github.com/anthropics/claude-plugins-official/blob/main/README.md)、[根目录许可证](https://github.com/anthropics/claude-plugins-official/blob/main/LICENSE)。
 
-依据：[README](https://github.com/mksglu/context-mode#readme)、[运行时条件](https://github.com/mksglu/context-mode/blob/main/package.json)、[ELv2 原文](https://github.com/mksglu/context-mode/blob/main/LICENSE)。
+### G5｜Orca：并排运行代理之后，还要审查与合并
 
-### G5｜CLI-Anything：复用真实软件，让代理有稳定的操作接口
+**MIT** 许可的多代理工作台，可组织 Codex、Claude Code、OpenCode 等终端代理，为任务建立独立 Git worktree，并提供差异批注、SSH 工作树与移动端跟进。它编排已有代理，仍使用各代理自己的账号、订阅或服务。
 
-为有源码的软件生成结构化 CLI，让代理用命令和 JSON 操作 Blender、LibreOffice 等应用，保留真实软件作为执行与渲染后端。项目采用 **Apache-2.0**。
+**门槛与判断：** 适合已同时管理多项开发任务的人。独立工作树有助于分开代码变更，但不等于运行时和凭据的强隔离，也不会自动消除最终合并冲突。先验证并行方案是否改善测试结果和交付时间，再增加代理数量，不把项目的生产率口号当作实测收益。
 
-**门槛与判断：** 仍需安装目标软件与依赖，生成接口可能花费模型费用并需要人工修正。闭源二进制的覆盖较弱，一次生成不保证完整。最近列出的正式 release 为 **6 月 25 日 v0.4.0**；适合从可回滚的小流程开始，例如文档导出，不应凭上榜热度就把生产操作全交出去。
-
-依据：[README 与限制](https://github.com/HKUDS/CLI-Anything#readme)、[版本记录](https://github.com/HKUDS/CLI-Anything/releases/tag/v0.4.0)。
-
-### G6｜HyperFrames：视频也能变成可版本管理的代码
-
-用 HTML、CSS 和可逐帧定位的动画描述视频，经无头 Chrome 与 FFmpeg 渲染，配套 Skills 可让编码代理参与制作。适合产品介绍、字幕视频和可复用模板，需要 **Node.js 22+ 与 FFmpeg**，采用 **Apache-2.0**。
-
-**门槛与判断：** 本地渲染仍消耗资源，外部 AI 与素材服务费用另算。**10 月 17 日 01:11 UTC**发布的 `v0.8.167` 修复长项目预览与繁忙机器上的 Chrome 启动问题；仍处 0.x 快速迭代阶段，批量生产应锁定版本、抽查字幕和音画同步。它的价值更接近可程序化的视频生产，而不是保证一句提示就完成所有创作。
-
-依据：[README](https://github.com/heygen-com/hyperframes#readme)、[v0.8.167](https://github.com/heygen-com/hyperframes/releases/tag/v0.8.167)。本次没有取得其日榜增量，仅列周榜。
+依据：[README 与运行方式](https://github.com/stablyai/orca/blob/main/README.md)、[MIT 许可证](https://github.com/stablyai/orca/blob/main/LICENSE)。
 
 ## 读完之后，值得做的三件事
 
-1. **重度 AI 使用者：** 用固定任务观察 Day 12 的总用量与完成时间；试用新并行、幻灯片或学习功能时，以账号实际开放情况为准。
-2. **开发与出海团队：** 把模型性能、部署内存、许可、技术转移和服务成本放在同一张检查表里。低价分类器可以先做辅助路由，高风险动作仍需额外校验与授权。
-3. **GitHub 项目试用者：** 每次挑一个真实问题做小规模验证，记录版本、效果与退路。增长榜帮你发现工具，不能替你完成安全审查或业务验收。
+1. **开发者：** 对 DeepSeek 自动升级的模型别名跑回归测试；把模型 token 与搜索、抓取费用分开记录，并留意 11 月 1 日的工具计费节点。
+2. **创作者与本地模型使用者：** 为声音、图像、3D 与 Dory 各挑一个小任务，先验兼容性、输出质量和资源占用，再扩大使用。
+3. **连接资料或试用 GitHub 工具的人：** 先检查公开仓库、模型权限和衍生数据的保存方式。求职资料与邮件摘要都不应因为“只在初始化”或“只是摘要”而被忽略。
 
-本期评论为基于上述原始资料的编辑判断；未独立复现模型性能、科研实验或项目宣传的节省比例，也未验证个人账号额度与所有地区的产品覆盖。GitHub 增长数字为指定时刻页面快照，不是自建连续统计。上一期完整正文见 [第 005 期归档](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-16.md)。
+本期事实以所列一手公告、模型卡和仓库为依据，评论为编辑判断；没有独立复现模型跑分、产品效果或个人账号额度。Tibo 动态已单独标记第三方存档与 X 直读限制。GitHub 增长数据为指定查阅时刻可得的官方页面快照。上一篇完整正文见 [第 006 期归档](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-17.md)。
