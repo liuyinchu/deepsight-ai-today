@@ -1,129 +1,142 @@
 # AI 前沿札记
 
-> 更新日期：2026-10-20（Asia/Shanghai） · 第 009 期
+> 更新日期：2026-10-21（Asia/Shanghai） · 第 010 期
 >
-> 信息范围：以 10 月 19 日至 20 日早间可核实的变化为主；产品进展、工程实测与产业意向分别标注，不把转载日期当作首发日期。
+> 信息范围：以 10 月 20 日发布、截至 10 月 21 日早间可核实的进展为主；不把旧模型、今日上榜项目或待上线功能写成当天首发。
 >
-> 新闻与项目查阅：2026-10-20 早间（北京时间，UTC+8）；GitHub 增长数据的采样时间和原始窗口另列。来源只标日期时保留原日期，不补写时刻。
+> 新闻与文档查阅：2026-10-21 早间（北京时间，UTC+8）。来源仅标日期时保留原日期，不补写发布时间；GitHub 快照的采样时刻另列。
 
-## 本期关注：Agent 进入真实工作流，权限、数据和性能条件成为关键
+## 本期关注：推理基础设施开放，Agent 工具链进入具体业务环节
 
-本期值得看的是几类具体落地问题：企业内部 Agent 如何接受持续监督，媒体素材如何在可控环境中检索，GPU 优化到底加速了哪一段计算，以及工业 AI 合作离实际交付还有多远。它们共同提醒我们，判断一项进展的价值，需要把模型能力放回权限、数据路径和部署条件里。
+今天的实质变化，一端在模型服务底层：DeepSeek 开放推理引擎，llm-d 发布 1.0，OpenAI 文档确认更长的提示缓存选项；另一端在工作流程：药物研发协作、会议上下文与企业对话访问都有新动作。判断价值时，要把“代码已公开”“功能正在推出”和“未来整合计划”分开。
 
-**先看这四件事：**
+**先看这五件事：**
 
-- **企业安全：** 微软进一步阐述内部 Agent 治理，强调按操作风险动态约束权限；这不是当天才出现的新产品。
-- **媒体工作流：** NVIDIA 与 EBU 扩展主权 AI 框架，同时展示 Frame.io 的 GPU 检索流水线；数据控制与处理效率要一起看。
-- **推理与训练工程：** Mamba-2 的 cuTile 前向内核报告 1.14—1.82 倍加速，但不能等同于完整训练收益。
-- **产业布局：** 德国与 NVIDIA 签署物理 AI 合作意向声明；拟投资、签约与部署完成是不同阶段。
+- **DeepInfer：** DeepSeek 开源面向 V4.1-Flash 的推理框架，但完整在线服务所需的部分组件仍未包含。
+- **llm-d 1.0：** 开源分布式推理栈强化多租户、会话与缓存管理，针对多步 Agent 的突发请求。
+- **OpenAI × Orchestra Bio：** 已宣布收购，拟与 Rosalind 结合；这不是新药效果或整合产品上线的证明。
+- **Zoom：** 会议上下文进入外部 Agent 工具链，但本次公告同时包含已可用能力和未来路线图。
+- **ChatGPT：** Enterprise / Edu 开始逐步推出锁定对话，隐藏聊天不等于删除或绕开合规留存。
 
-## 一、Agent 治理：内部工具也需要持续约束
+## 一、DeepInfer：开放推理引擎，也明确留下了哪些缺口
 
-### 01｜微软：自行部署的 Agent，仍然可能拥有过大的权限
+### 01｜DeepSeek 把 V4.1-Flash 的推理工程交给开发者检查
 
-微软 **10 月 19 日**发布《Securing the agentic insider》，把安全重点放到企业自行部署、却可能权限过大的 Agent。方案结合身份、数据、终端与运行时信号，动态评估操作风险，并由 Guardian Agents 监督行动、调整权限。
+官方仓库的首次提交记录为 **10 月 20 日 04:09 UTC（北京时间 12:09）**。DeepInfer 以 Apache-2.0 许可发布，当前列出的模型为 **DeepSeek-V4.1-Flash**，硬件为 **NVIDIA SM100 GPU 和华为 Ascend 950 NPU**。功能包括优化内核、并行推理、推测解码、异步调度和结构化输出。
 
-这篇文章进一步阐述如何把已有安全体系用于内部 Agent 治理。**Project Perception 早在 7 月已宣布**，不能写成 10 月 19 日的新产品首发。
+**最重要的边界在 README：** 本次提供离线推理及规模化服务的核心能力，完整在线服务还需补齐 KV 缓存系统、相关分离部署与跨副本负载均衡。部分批次不变性及确定性采样功能仅支持 NVIDIA。不能把“生产服务使用的引擎开源”理解为生产集群已完整开源、下载即能复刻官方 API。
 
-**解读与边界：** 值得借鉴的是按具体动作持续检查，而不是因“自己部署”就默认可信。文章属于厂商架构与方向说明，没有给出跨模型拦截率或独立测试，不能据此断言 Agent 失控问题已经解决。实际接入时，应先明确哪些操作可自动执行、哪些需要复核，以及权限如何收回。
+官方性能图分别使用 4 张 SM100 做 prefill、64 张做 decode，这是基准环境，**不是所有部署的统一最低卡数要求**。本刊未复现性能；代码许可也不替代模型权重及依赖的许可。
 
-来源：[微软原文](https://blogs.microsoft.com/blog/2026/10/19/securing-the-agentic-insider/)。发布：2026-10-19；查阅：2026-10-20。
+**解读：** 对推理团队，值得研究的是计算、通信和调度如何配合。评估时应先确认自己的硬件与服务目标，再判断还需补多少缓存和运维能力，而不是直接套用厂商吞吐数字。
 
-## 二、媒体应用：检索效率与数据控制一起进入设计
+来源：[官方 README](https://github.com/deepseek-ai/DeepInfer/blob/main/README.md)、[首次提交及时间](https://github.com/deepseek-ai/DeepInfer/commit/d585e6542c0571176272d703f03c4807ae901284)、[许可证](https://github.com/deepseek-ai/DeepInfer/blob/main/LICENSE)。提交：2026-10-20；查阅：2026-10-21。
 
-### 02｜NVIDIA 与 EBU：媒体 Agent 不只需要找到素材，还要明确处理边界
+## 二、llm-d 1.0：让共享上下文与突发流量进入调度规则
 
-**10 月 19 日**，NVIDIA 宣布与欧洲广播联盟（EBU）扩展此前的主权框架，引入云服务商、开放模型开发者和系统集成商，细化媒体 Agent 的数据治理、部署位置与安全要求。同日公布的 Adobe Frame.io GPU 检索流水线，面向海量视频素材中的语义查找。
+### 02｜Google 与社区发布分布式推理栈 1.0，面向多步 Agent
 
-厂商报告嵌入生成约快 **5 倍**、吞吐最高提升 **4 倍**；2 FPS 代理视频比被替代的 360p 版本约小 **80%**。这些属于特定处理链路数据，并非所有用户的检索体验或制作效率保证，本刊未复现。
+Google **10 月 20 日**宣布在 PyTorch Conference 发布 llm-d 1.0。它是 Kubernetes 原生的开源推理服务栈，强调缓存感知路由、分层 KV 缓存、多租户流量控制、会话感知调度及更安全的升级流程。
 
-**解读与边界：** 对媒体团队，实用问题既是“能否找到那个镜头”，也是素材在哪里处理、由谁控制。框架扩展不等于所有广播机构已部署；选型时应把素材权限、部署位置与检索效果一起验收。
+官方演示让 **1,000 个沙箱 Agent** 访问一个端点，后端包含 vLLM、SGLang，以及 TPU / GPU 混合集群。这个数字描述演示设置，不是任何集群都能达到的并发或延迟保证；这次发布也不是新基础模型。
 
-来源：[NVIDIA 原始公告](https://blogs.nvidia.com/blog/media-agentic-security-european-public-service-broadcasting-global-content-production/)。发布：2026-10-19；查阅：2026-10-20。
+**解读与待观察：** Agent 多轮调用可能反复使用长前缀，又会突然产生并发请求。将上下文送回已有缓存的副本、保护交互请求不被批量任务挤占，比单看单卡速度更贴近实际服务问题。生产评估仍需测真实流量下的延迟、命中率和故障恢复，不能用一次演示代替自己的容量规划。
 
-## 三、底层工程：加速数字要对应具体计算范围
+来源：[Google Cloud 原文](https://cloud.google.com/blog/topics/ai-infrastructure/llm-d-1-0-an-open-source-stack-for-distributed-inference)。事件与发布：2026-10-20；查阅：2026-10-21。
 
-### 03｜Mamba-2 的 cuTile 优化：前向内核更快，不等于整套训练同幅提速
+## 三、行业工作流：收购与新接口，不等于效果已经交付
 
-NVIDIA 与 Jane Street 工程师 **10 月 19 日**公布 Mamba-2 前向计算的 cuTile 实现与优化说明，围绕分块累加、隐藏状态传递和输出融合三类内核展开，代码通过 TileGym 提供。
+### 03｜OpenAI 已收购 Orchestra Bio，拟连接科研发现与研发协作
 
-在 **单张 B300 SXM6、指定软件栈**的测试中，相对 Triton 参考实现，前向内核报告 **1.14—1.82 倍加速**，收益随序列长度与状态大小变化。官方明确，这是**内核级结果**，完整训练还取决于反向传播实现。
+OpenAI **10 月 20 日**公告明确表示已收购 Orchestra Bio，计划把其团队和技术与生命科学平台 Rosalind 结合。Orchestra 的既有业务帮助生物制药团队跟踪研究和药物项目，并梳理制造或研究环节延误对后续工作的影响。
 
-**解读与边界：** 这是一份可检查的 GPU 工程案例，不是新模型发布。值得学习的是减少中间张量落显存、改善布局和按形状调优。迁移到其他硬件、模型或真实负载后仍需重测，不能直接套用最高加速比；端到端评估还应纳入未被加速的部分。
+**解读：** 这次动作关注的不只是回答科学问题，还包括把发现接到研究安排、决策与跨团队协作上。公告未披露交易金额，也没有证明整合产品已全面上线或药物研发周期已经缩短。后续应观察实际接入流程、人工决策边界和可核验的项目成果，不把目标写成效果。
 
-来源：[NVIDIA 技术博客与实现入口](https://developer.nvidia.com/blog/accelerating-mamba-2-with-high-performance-forward-pass-kernels-in-nvidia-cuda-tile/)。发布：2026-10-19；查阅：2026-10-20。性能为作者报告，本刊未独立复现。
+来源：[OpenAI 原始公告](https://openai.com/index/openai-to-acquire-orchestra-bio/)。发布：2026-10-20；查阅：2026-10-21。
 
-## 四、产业布局：物理 AI 合作进入意向阶段
+### 04｜Zoom 把会议上下文开放给 Agent，但上线时间需要逐项看
 
-### 04｜德国与 NVIDIA 签署合作意向声明，行业交付仍待观察
+Zoom 在 **10 月 20 日 Zoomtopia** 宣布 Unified Context Layer，串联会议、聊天与文档信息。公告把 **MCP Servers、Search & Ask APIs 和 ZoomMate Agent Teams** 标为已可用，让其他 AI 环境也能调用部分 Zoom 能力。
 
-**10 月 19 日**，德国联邦政府与 NVIDIA 签署联合意向声明，拟合作推进物理 AI 前沿模型，并扩大工业 AI 应用。NVIDIA 同日宣布拟投资 Agile Robots、Avelios Medical、Mirelo 和 Reflex Aerospace，覆盖机器人、医院信息系统、视频音频生成与航天。
+同一公告里的 My Notes Workflows 预计 10 月推出，Enriched Notes 预计 11 月，新的 Chat 体验预计 12 月，Live Meeting AI Agent 则预计 **2027 年第一季度**。因此，“发布一组新功能”不能简写为“今天全部上线”。
 
-**解读与边界：** 这把竞争焦点延伸到工业数据和行业工作流。对产业团队，更值得跟踪的是试点如何接入已有系统、效果怎样验收。意向声明不是部署完成，拟投资也不是交割确认；公告未给出这四笔投资各自金额，不应把欧洲整体承诺当作德国项目已到账资金。
+**解读与边界：** 真正值得验证的是从“会后摘要”到“可追溯行动”的转化。接入前仍应确认套餐、权限与实际开放范围；有接口并不意味着所有会议材料都可跨系统使用，也不意味着 Agent 可以默认执行所有动作。
 
-来源：[NVIDIA 官方公告](https://blogs.nvidia.com/blog/germany-wants-to-lead-the-world-in-industrial-ai-how-nvidia-will-help/)。发布：2026-10-19；查阅：2026-10-20。
+来源：[Zoom 官方公告](https://news.zoom.com/zoomtopia-2026-news/)。事件与发布：2026-10-20；查阅：2026-10-21。
 
-## 五、Tibo 动态：补上 Day 14 线索，Day 15 指向演示广播
+## 四、产品小更新：锁定对话，主要改变访问入口
 
-上期未取得 Day 14 正文。本轮可读的社区汇总与第三方镜像已更新，**据这些辅助来源，Day 14 的内容是桌面应用支持编辑线程中的历史消息**；Day 15 则引用 OpenAI Developers 的 Codex 广播，配文为“Day 15/ We're cooked”。第三方记录把 Day 15 帖标为北京时间 **10 月 20 日 03:45**，这一时间尚未通过 X 页面直接复核。
+### 05｜ChatGPT Enterprise / Edu 逐步推出 locked chats
 
-**证据分级：** 本轮直接打开 Tibo（Thibault Sottiaux，@thsottiaux）账号及原帖仍失败，其中原帖返回 403。以上是社区汇总、镜像与原链接交叉核对，**不是已经直读 X 正文的官方确认**。社区帖子虽托管于 OpenAI 论坛，但由用户维护，不能因此升级成正式发行说明。
+OpenAI **10 月 20 日**的企业及教育版发布说明新增锁定对话：选定聊天可从常规历史、置顶与搜索中隐藏，打开需账户 PIN 或受支持的设备认证。功能正向网页、移动端及新版桌面端逐步推出，本条核实范围为 **Enterprise / Edu**，不外推到所有套餐。
 
-**解读：** 历史消息编辑是具体的易用性改进线索；广播适合观察工作流演示，不能仅凭一句配文推断新模型上线、全套餐开放或额度重置。本期没有取得新增重置的直接证据，这也不等于断言“没有重置”；个人可用额度仍以账户用量页为准。
+**使用边界：** 锁定不是删除。组织的保留与合规规则仍适用，对话仍包含在 Compliance Platform 的消息日志中。它适合减少普通界面中的偶然暴露，不能据此承诺管理员不可见或数据已被清除。
 
-核对入口：[Day 14 原帖](https://x.com/thsottiaux/status/2111990254408434095)、[Day 15 原帖](https://x.com/thsottiaux/status/2112268918681485431)、[被引用的官方广播帖](https://x.com/i/status/2112242739198959913)。可读辅助证据：[社区汇总及维护说明](https://community.openai.com/t/28-days-of-shipping-at-openai/1403897)、[第三方帖子镜像](https://www.sotwe.com/thsottiaux)、[Day 15 时间记录](https://aifollow.news/ai/codex-reset/events/9b3b9feaf41348d388a4fc5b2df3b6cb?lang=zh-CN)。查阅：2026-10-20。第三方重置历史覆盖不完整，本期不采用其统计或预测。
+来源：[官方发布说明的 10 月 20 日条目](https://help.openai.com/en/articles/10128477-chatgpt-enterprise-and-edu-release-notes)。发布：2026-10-20；查阅：2026-10-21。
 
-## 六、每日 GitHub AI 热点：多工具编排、生成工作流与上下文压缩
+## 五、Tibo 动态：社区将 12 小时提示缓存列为 Day 16
 
-**采样时间：2026-10-20 09:46（北京时间，01:46 UTC）。** 本表取自同次读取的 [GitHub Trending 主页面](https://github.com/trending)，页面选择 Today，检索工具标记当日抓取，但未提供榜单生成的精确时刻。日榜增星和累计 Star 均取同页；`stars today` 是 GitHub 的展示窗口，**不是本刊实测滚动 24 小时净增，也不是北京时间自然日新增**。
+本轮社区整理的 **10 月 20 日第 79 帖**把“API 可选择 12 小时提示缓存”归入 Day 16，并链接 OpenAI Developers 的 X 帖。该 X 链接本轮返回 403，**Day 16 归属仍是社区证据，不是已直读 Tibo 原帖**；但功能本身已由 OpenAI API 官方文档确认。
 
-带 `?since=daily` 的入口本轮仍返回标为上月抓取的缓存，未采用。以下是从日榜筛选的四个 AI 项目，不是按增星排序的全榜前四；也不代表当天首发。
+当前文档明确，**GPT-5.6 及以后模型的 Responses API** 可选择默认 30 分钟或 12 小时的最低缓存有效期。30 分钟缓存写入按普通未缓存输入价的 **1.25 倍**计费，12 小时按 **2.5 倍**，读取单价不因这两个有效期选项而改变。
 
-| 项目 | 日榜增星 | 同页累计 Star | 代码许可 | 本期观察 |
+**解读：** 长间隔反复复用稳定前缀时，较长缓存可能减少重写；写入更贵，所以不能写成无条件降价。应按真实复用频率与账单核算，最低缓存有效期也不是数据删除期限。
+
+本次缓存更新不能推出任何 ChatGPT / Codex 套餐额度已重置。社区另有关于 reset 的讨论，但未取得足以确认当前账号适用情况的直接证据，本期不作额度结论。
+
+来源：[官方提示缓存文档](https://developers.openai.com/api/docs/guides/prompt-caching)、[社区第 79 帖所在页](https://community.openai.com/t/12-hour-prompt-caching-day-16-of-28-days-of-quality-of-life-improvements-and-or-a-full-reset/1403525?page=4)、[被引用的官方 X 帖（本轮直读受限）](https://x.com/OpenAIDevs/status/2112603916076781778)。社区帖标注日期：2026-10-20；文档查阅：2026-10-21。文档未提供该功能的精确首发时刻。
+
+## 六、每日 GitHub AI 热点：垂直工作流、安全审计与代码知识图谱
+
+**采样时间：2026-10-21 09:15（北京时间，01:15 UTC）。** 数据统一取自同次直接打开的 [GitHub Trending 主页面](https://github.com/trending)，筛选为 Today、全部编程语言与自然语言；页面标记当日抓取，未提供榜单生成的精确时刻。
+
+下列四项是从日榜挑选的 AI 项目，不是全榜前四，也不意味着当天首发。日榜的 `stars today` 是 GitHub 展示窗口，**不是本刊实测滚动 24 小时净增，也不是北京时间自然日新增**。累计 Star 与增量使用同页快照，不混用搜索摘要或其他时刻数字。
+
+| 项目 | 日榜增星 | 同页累计 Star | 仓库许可 | 关注点 |
 | --- | ---: | ---: | --- | --- |
-| [OpenCode](https://github.com/anomalyco/opencode) | +1,311 | 217,806 | MIT | 终端与桌面编码 Agent，先区分 plan 与 build 权限 |
-| [ComfyUI](https://github.com/Comfy-Org/ComfyUI) | +1,011 | 139,721 | GPL-3.0 | 节点式生成工作流，模型与插件另行核验 |
-| [Orca](https://github.com/stablyai/orca) | +1,590 | 98,276 | MIT | 多 Agent、独立 worktree 与移动端管理 |
-| [Headroom](https://github.com/headroomlabs-ai/headroom) | +310 | 76,240 | Apache-2.0 | 本地压缩工具输出，检查上游路由与真实节省 |
+| [AI Job Search](https://github.com/MadsLorentzen/ai-job-search) | +3,861 | 60,589 | MIT | 求职工作流与个人资料保护 |
+| [Security Audit Skill](https://github.com/cloudflare/security-audit-skill) | +1,712 | 34,230 | MIT | 分阶段审计、验证与执行隔离 |
+| [Graphify](https://github.com/Graphify-Labs/graphify) | +802 | 130,244 | 仓库含 Apache-2.0 / MIT | 代码图谱及语义处理的数据去向 |
+| [Knowledge Work Plugins](https://github.com/anthropics/knowledge-work-plugins) | +267 | 30,794 | Apache-2.0 | 按岗位组织技能与连接器 |
 
-### G1｜OpenCode：先用规划模式，再按任务开放写入
+### G1｜AI Job Search：可参考的垂直流程，先避免公开个人档案
 
-OpenCode 提供终端工具与仍标为 **Beta** 的桌面应用，适合需要代码探索、计划和执行的开发者。当前 README 区分默认全访问的 `build` 与用于分析的 `plan`：后者默认拒绝文件编辑，运行 bash 前请求许可。
+项目围绕 Claude Code 组织岗位评估、简历定制、求职信与面试准备，适合研究如何把通用 Agent 变成可审阅的专业流程。它是独立项目，并非 Anthropic 官方产品；招聘门户技能以丹麦市场为主，迁移时需要本地化，也需准备相应运行环境和模型服务。
 
-**门槛与风险：** 开源应用不等于模型服务免费，也不意味着所有操作都已隔离。对陌生代码库，先用 plan 检查，再按任务开放执行权限；桌面版仍需评估兼容性。本期只记录上榜与现有说明，不将它当作今日首发。
+**重要风险：** README 明确警告，公开仓库的 fork 仍公开，而初始化会把个人资料写进被 Git 跟踪的文件。个人使用应先按项目说明建立合适的私有工作副本，避免把联系方式、工作经历和薪资期望推到公开仓库。生成的经历与申请内容要逐项人工核实，作者自身求职结果不构成效果保证。
 
-依据：[README](https://github.com/anomalyco/opencode/blob/dev/README.md)、[MIT 许可证](https://github.com/anomalyco/opencode/blob/dev/LICENSE)。
+依据：[README](https://github.com/MadsLorentzen/ai-job-search/blob/master/README.md)、[MIT 许可证](https://github.com/MadsLorentzen/ai-job-search/blob/master/LICENSE)。
 
-### G2｜ComfyUI：可复用的图形工作流，边界在模型与节点
+### G2｜Cloudflare Security Audit Skill：让发现与复核分开
 
-ComfyUI 用节点图组织图像、视频、音频和 3D 等流程，支持模板、子图、App Mode 与 API，适合需要可复现参数和生产流程集成的创作者。Windows、macOS 有桌面入口，手动安装覆盖更多系统与硬件；实际门槛取决于模型、显存、驱动和依赖，不能从“支持低显存”推导所有工作流都快。
+Cloudflare 的 skill 将单仓库安全审计组织为侦察、覆盖率驱动排查、候选验证、结构化结果、独立复核和报告六个阶段，适合已有编码 Agent 与安全审查能力的开发团队。
 
-**风险与判断：** 官方提醒，稳定标签之外的提交可能破坏自定义节点。应用代码的 GPL-3.0 不替代模型、素材和外部服务许可；第三方节点也应单独审核。需要离线处理时，注意官方提供的 `--offline` 与关闭付费 API 节点选项，不要把“本地界面”误认为所有调用都留在本机。
+**门槛与风险：** 目标代码的构建、测试或模糊测试需操作系统级沙箱、禁外网、限制写入和资源用量。缺少这些控制时，项目要求保留“待验证”，而不是执行目标代码。这个流程提供检查框架，不能把一次自动审计或“没有发现”当作系统安全证明。
 
-依据：[README 与安装边界](https://github.com/Comfy-Org/ComfyUI/blob/master/README.md)、[许可证](https://github.com/Comfy-Org/ComfyUI/blob/master/LICENSE)。
+依据：[README 与执行要求](https://github.com/cloudflare/security-audit-skill/blob/main/README.md)、[MIT 许可证](https://github.com/cloudflare/security-audit-skill/blob/main/LICENSE)。
 
-### G3｜Orca：把并行 Agent 放到可审查的工作区
+### G3｜Graphify：代码结构本地解析，语义处理仍要检查后端
 
-Orca 可在独立 Git worktree 中并行运行 Codex、Claude Code、OpenCode 等 CLI Agent，集中查看差异，也提供手机端跟进、SSH 远端工作区和界面元素传入提示词的 Design Mode。适合同时比较多条实现路线、愿意逐项审查结果的开发者；模型或 Agent 账户与订阅仍需自行准备。
+Graphify 把代码与相关文档组织为可查询知识图谱。代码通过本地 tree-sitter AST 解析，适合代码库导航、关系查找与影响范围分析；本期未安装或验证其节省 token 的宣传数据。
 
-**风险与判断：** worktree 能分开代码改动，但不等于操作系统安全沙箱。远端连接、手机配对、页面截图、文件上下文和匿名遥测都需要检查数据范围；不要把编排界面的 MIT 许可理解成底层服务无限免费。官方 README 链接了隐私、遥测说明及退出方式。
+**数据边界：** 文档、PDF 和图片的语义提取可能调用模型；无头模式可根据已设置的 API key 自动选择服务商。代码本地解析不等于所有流程离线。有数据驻留要求时，应明确后端或关闭 LLM 处理，并检查默认的本地查询日志。仓库包含两份许可文件，复用具体文件与依赖时仍应分别核对。
 
-依据：[README](https://github.com/stablyai/orca/blob/main/README.md)、[MIT 许可证](https://github.com/stablyai/orca/blob/main/LICENSE)、[隐私与遥测说明](https://www.onorca.dev/docs/telemetry)。
+依据：[README 与隐私说明](https://github.com/Graphify-Labs/graphify/blob/v8/README.md)、[Apache-2.0 文件](https://github.com/Graphify-Labs/graphify/blob/v8/LICENSE)、[MIT 文件](https://github.com/Graphify-Labs/graphify/blob/v8/LICENSE-MIT)。
 
-### G4｜Headroom：少传工具输出，但先核验路由和信息损失
+### G4｜Anthropic Knowledge Work Plugins：官方模板，需要按组织改造
 
-Headroom 可作为库、本地代理或 MCP 服务，在工具输出、日志、文件和检索片段进入模型前压缩，并在本地缓存原文供后续取回。项目方说明，重复 JSON、日志比短对话或高密度文字更适合压缩；本期未复现其节省比例，不把 README 的基准结果外推到所有任务。
+Anthropic 官方仓库提供面向 Cowork、同时兼容 Claude Code 的岗位插件，为销售、产品、数据等工作组合技能、连接器、命令及子代理。适合参考工作流结构，而不是把通用模板直接当成企业制度。
 
-**接入陷阱：** README 明确提示，使用第三方 OpenAI 兼容供应商时，必须设置对应上游地址；否则默认路由可能把第三方密钥发给 OpenAI 并返回 401。包装 Agent 还可能安装并注册 Serena，使用前需检查实际配置变化。本地压缩也不等于后续模型调用不出网，应以真实流量、任务成功率和原文召回验证收益。
+**成熟度与风险：** README 把这些插件定位为可定制的起点。接入 CRM、企业搜索或数据仓库前，应核对连接器权限、数据范围及哪些动作需要确认；插件代码开源不等于所接服务免费，也不替代模型、数据和外部服务的条款。
 
-依据：[README、限制与接入警告](https://github.com/headroomlabs-ai/headroom/blob/main/README.md)、[Apache-2.0 许可证](https://github.com/headroomlabs-ai/headroom/blob/main/LICENSE)。
+依据：[README](https://github.com/anthropics/knowledge-work-plugins/blob/main/README.md)、[Apache-2.0 许可证](https://github.com/anthropics/knowledge-work-plugins/blob/main/LICENSE)。
 
-项目文档和许可证均于 2026-10-20 查阅；本期未安装实测。关注度不是安全、成熟度或性能的证明。
+项目文档与许可证查阅：2026-10-21。本期未安装实测，关注度不等于安全、成熟度或性能证明。
 
 ## 读完之后，值得做的三件事
 
-1. **正在使用编码 Agent：** 检查规划与执行模式的默认权限，把工作区隔离、操作确认和账号授权分开验证；不要把 Git worktree 当作安全沙箱。
-2. **正在搭建生成或检索流程：** 逐项确认素材、模型和插件许可，以及数据实际流向。对压缩代理，先检查上游路由，再测成本与任务成功率。
-3. **评估加速或产业合作：** 固定硬件、软件栈和计算范围，区分内核收益与端到端收益；跟踪已交付能力，而不只看意向声明或最高性能数字。
+1. **自建模型服务：** 先列清硬件、缓存、路由、在线服务和运维缺口，再比较引擎与编排层；用自己的负载测端到端结果。
+2. **优化 Agent 成本：** 按上下文复用间隔分别测缓存写入和读取，不只看缓存有效期或单次 token 价格。
+3. **采用工作流项目：** 先检查隐私、连接器和执行权限，尤其别把求职档案推入公开 fork；把生成、复核与对外执行分开。
 
-本期将新公告、工程测量、产业意向与辅助来源线索分别标注。未独立复现厂商性能，也未确认个人账号额度；Tibo 原帖的直读限制与 GitHub 快照口径均已注明。上一篇完整正文见 [第 008 期归档](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-19.md)。
+本期区分已发布代码、逐步推出功能、未来路线图与社区线索。未复现厂商性能，未确认个人账号额度变化。上一篇完整正文见 [第 009 期归档](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-20.md)。
