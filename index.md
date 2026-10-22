@@ -1,142 +1,150 @@
 # AI 前沿札记
 
-> 更新日期：2026-10-21（Asia/Shanghai） · 第 010 期
+> 更新日期：2026-10-22（Asia/Shanghai） · 第 011 期
 >
-> 信息范围：以 10 月 20 日发布、截至 10 月 21 日早间可核实的进展为主；不把旧模型、今日上榜项目或待上线功能写成当天首发。
+> 信息范围：以 10 月 21 日发布、截至 10 月 22 日晚间可核实的新进展为主；预览、正式可用、未来计划分别标注，不把今日上榜当成今日首发。
 >
-> 新闻与文档查阅：2026-10-21 早间（北京时间，UTC+8）。来源仅标日期时保留原日期，不补写发布时间；GitHub 快照的采样时刻另列。
+> 新闻与文档查阅：2026-10-22 晚间（北京时间，UTC+8）。来源仅标日期时保留原日期，不补写精确发布时间；GitHub 快照的采样时刻另列。
 
-## 本期关注：推理基础设施开放，Agent 工具链进入具体业务环节
+## 本期关注：主动 Agent 开始进入产品，AI 安全进入修复闭环
 
-今天的实质变化，一端在模型服务底层：DeepSeek 开放推理引擎，llm-d 发布 1.0，OpenAI 文档确认更长的提示缓存选项；另一端在工作流程：药物研发协作、会议上下文与企业对话访问都有新动作。判断价值时，要把“代码已公开”“功能正在推出”和“未来整合计划”分开。
+今天最值得关注的不是又一张排行榜，而是 AI 开始如何持续工作：Claude Duet 尝试主动跟进任务，Google Cloud 引入 OpenAI 模型，安全团队则把模型发现的漏洞推进到正式补丁。另一条值得开发者观察的线，是 Flint 把编码模型与本地推理优化一起交付。
 
 **先看这五件事：**
 
-- **DeepInfer：** DeepSeek 开源面向 V4.1-Flash 的推理框架，但完整在线服务所需的部分组件仍未包含。
-- **llm-d 1.0：** 开源分布式推理栈强化多租户、会话与缓存管理，针对多步 Agent 的突发请求。
-- **OpenAI × Orchestra Bio：** 已宣布收购，拟与 Rosalind 结合；这不是新药效果或整合产品上线的证明。
-- **Zoom：** 会议上下文进入外部 Agent 工具链，但本次公告同时包含已可用能力和未来路线图。
-- **ChatGPT：** Enterprise / Edu 开始逐步推出锁定对话，隐藏聊天不等于删除或绕开合规留存。
+- **Claude Duet：** 开放美国 Pro / Max 用户候补名单，是研究预览；后台检查与普通 Claude 共用额度。
+- **Google Cloud × OpenAI：** 部分企业已进入私有预览，正式全面可用仍是未来数周的计划。
+- **PHP 安全修复：** AI 辅助漏洞发现已有实际补丁落地，使用 PHP 的团队应优先核查供应商更新。
+- **Flint：** 开放权重与本地编码推理方案；速度宣传必须连同硬件、精度和上下文条件一起读。
+- **Claude Security：** 新增持续扫描、修复追踪及 API / MCP，面向 Enterprise 公测，不是所有订阅默认可用。
 
-## 一、DeepInfer：开放推理引擎，也明确留下了哪些缺口
+## 一、Claude Duet：从等你提问，转向主动跟进
 
-### 01｜DeepSeek 把 V4.1-Flash 的推理工程交给开发者检查
+### 01｜主动助手进入研究预览，但后台工作也会消耗额度
 
-官方仓库的首次提交记录为 **10 月 20 日 04:09 UTC（北京时间 12:09）**。DeepInfer 以 Apache-2.0 许可发布，当前列出的模型为 **DeepSeek-V4.1-Flash**，硬件为 **NVIDIA SM100 GPU 和华为 Ascend 950 NPU**。功能包括优化内核、并行推理、推测解码、异步调度和结构化输出。
+Anthropic **10 月 21 日**发布 Claude Duet，提供独立 iOS / Android 应用及网页入口，首批面向**美国 Pro 和 Max 用户开放候补名单**。它可结合已连接应用提供简报、跟进事项，在自己的虚拟机与浏览器中继续处理任务，不要求用户设备一直开机。
 
-**最重要的边界在 README：** 本次提供离线推理及规模化服务的核心能力，完整在线服务还需补齐 KV 缓存系统、相关分离部署与跨副本负载均衡。部分批次不变性及确定性采样功能仅支持 NVIDIA。不能把“生产服务使用的引擎开源”理解为生产集群已完整开源、下载即能复刻官方 API。
+官方说明，它继承 Claude 的记忆、技能与连接应用；发送消息、付款、签署文件或删除内容前需等待用户批准。当前仍可能误读对话、误判紧急程度，也暂不能向用户展示其浏览器。
 
-官方性能图分别使用 4 张 SM100 做 prefill、64 张做 decode，这是基准环境，**不是所有部署的统一最低卡数要求**。本刊未复现性能；代码许可也不替代模型权重及依赖的许可。
+**使用边界：** Duet 与现有 Claude **共享套餐使用上限**，后台检查同样计入，并非订阅之外赠送一份无限 Agent 额度。加入候补名单也不等于立即获得访问。
 
-**解读：** 对推理团队，值得研究的是计算、通信和调度如何配合。评估时应先确认自己的硬件与服务目标，再判断还需补多少缓存和运维能力，而不是直接套用厂商吞吐数字。
+**解读：** 这类产品真正要验证的，是能否少打扰地找出重要事项，并在正确边界内完成工作。试用时应从少量连接器和低风险任务开始，同时观察后台消耗，而不只看一次演示。
 
-来源：[官方 README](https://github.com/deepseek-ai/DeepInfer/blob/main/README.md)、[首次提交及时间](https://github.com/deepseek-ai/DeepInfer/commit/d585e6542c0571176272d703f03c4807ae901284)、[许可证](https://github.com/deepseek-ai/DeepInfer/blob/main/LICENSE)。提交：2026-10-20；查阅：2026-10-21。
+来源：[Anthropic 官方介绍](https://claude.com/resources/articles/claude-duet)。发布：2026-10-21；查阅：2026-10-22。
 
-## 二、llm-d 1.0：让共享上下文与突发流量进入调度规则
+## 二、模型分发：OpenAI 进入 Google Cloud，但不是全面开放
 
-### 02｜Google 与社区发布分布式推理栈 1.0，面向多步 Agent
+### 02｜私有预览已启动，采购与治理比“多一个模型入口”更重要
 
-Google **10 月 20 日**宣布在 PyTorch Conference 发布 llm-d 1.0。它是 Kubernetes 原生的开源推理服务栈，强调缓存感知路由、分层 KV 缓存、多租户流量控制、会话感知调度及更安全的升级流程。
+Google Cloud **10 月 21 日**宣布，**GPT-6 Astra、GPT-6.1 Sol、GPT-6 Luna** 正向部分企业客户提供 Model Garden 私有预览。获准客户可通过 API 使用，也可将本地 Codex CLI / Desktop 工作流接到 Google 平台进行推理。
 
-官方演示让 **1,000 个沙箱 Agent** 访问一个端点，后端包含 vLLM、SGLang，以及 TPU / GPU 混合集群。这个数字描述演示设置，不是任何集群都能达到的并发或延迟保证；这次发布也不是新基础模型。
+采购通过 Google Cloud Marketplace，相关消费可抵扣已有 Google Cloud 消费承诺。OpenAI 同日公告将**正式全面可用（GA）列为未来数周的计划**，因此不能将私有预览写成所有客户今天都能用。
 
-**解读与待观察：** Agent 多轮调用可能反复使用长前缀，又会突然产生并发请求。将上下文送回已有缓存的副本、保护交互请求不被批量任务挤占，比单看单卡速度更贴近实际服务问题。生产评估仍需测真实流量下的延迟、命中率和故障恢复，不能用一次演示代替自己的容量规划。
+**尚未落地的部分：** Google Antigravity、Gemini for business 的接入，以及 Zero Data Retention 和 Confidential Compute 选项，Google 均标为 coming soon。本次发布不能据此推导这些能力已经生效。
 
-来源：[Google Cloud 原文](https://cloud.google.com/blog/topics/ai-infrastructure/llm-d-1-0-an-open-source-stack-for-distributed-inference)。事件与发布：2026-10-20；查阅：2026-10-21。
+**解读：** 对已有 GCP 合同和治理体系的团队，这可能减少多供应商采购与接入摩擦。但做迁移决定前，仍需核实预览资格、实际区域、价格与数据处理条款，不能把未来安全选项纳入今天的合规保证。
 
-## 三、行业工作流：收购与新接口，不等于效果已经交付
+来源：[Google Cloud 公告](https://cloud.google.com/blog/products/ai-machine-learning/google-cloud-brings-openai-models-to-customers)、[OpenAI 公告](https://openai.com/index/openai-models-google-cloud/)。发布：2026-10-21；查阅：2026-10-22。
 
-### 03｜OpenAI 已收购 Orchestra Bio，拟连接科研发现与研发协作
+## 三、AI 安全：发现漏洞之后，更重要的是让补丁部署下去
 
-OpenAI **10 月 20 日**公告明确表示已收购 Orchestra Bio，计划把其团队和技术与生命科学平台 Rosalind 结合。Orchestra 的既有业务帮助生物制药团队跟踪研究和药物项目，并梳理制造或研究环节延误对后续工作的影响。
+### 03｜PHP 发布关键修复，AI 辅助发现进入真实维护流程
 
-**解读：** 这次动作关注的不只是回答科学问题，还包括把发现接到研究安排、决策与跨团队协作上。公告未披露交易金额，也没有证明整合产品已全面上线或药物研发周期已经缩短。后续应观察实际接入流程、人工决策边界和可核验的项目成果，不把目标写成效果。
+OpenAI **10 月 21 日**披露，Calif 在 Patch the Planet 项目中使用 GPT-5.6 Sol 识别出一个关键 PHP 漏洞，Wiz 也独立发现并报告了这两项漏洞；修复与版本发布由 PHP 维护者主导。这不是“模型单独修好了互联网”，而是研究者、维护者和安全厂商的协作结果。
 
-来源：[OpenAI 原始公告](https://openai.com/index/openai-to-acquire-orchestra-bio/)。发布：2026-10-20；查阅：2026-10-21。
+PHP 官方已发布 **8.5.12、8.4.27、8.3.36、8.2.35**，修复可导致未经认证远程代码执行的 **CVE-2026-109618 / CVE-2026-109619**。官方将服务 Web 请求的 PHP 安装列为风险范围，要求尽快更新。ENISA 记载补丁发布于 **10 月 21 日 13:40 UTC，即北京时间 21:40**，不是本期日期当天才发布。
 
-### 04｜Zoom 把会议上下文开放给 Agent，但上线时间需要逐项看
+**实际行动：** 先盘点 PHP 服务并核对发行版或托管服务商的安全更新，再按其说明升级、测试。发行版可能回补补丁，不能只凭上游版本字符串断言是否安全；缓解措施也不能替代完整修复。此处仅提示核查，不提供利用细节。
 
-Zoom 在 **10 月 20 日 Zoomtopia** 宣布 Unified Context Layer，串联会议、聊天与文档信息。公告把 **MCP Servers、Search & Ask APIs 和 ZoomMate Agent Teams** 标为已可用，让其他 AI 环境也能调用部分 Zoom 能力。
+**解读：** AI 安全的有效指标不应只是“发现多少漏洞”，还应看验证、协调披露、修复和部署是否闭环。本次没有证据支持把某个网站占比直接等同于实际受攻击比例。
 
-同一公告里的 My Notes Workflows 预计 10 月推出，Enriched Notes 预计 11 月，新的 Chat 体验预计 12 月，Live Meeting AI Agent 则预计 **2027 年第一季度**。因此，“发布一组新功能”不能简写为“今天全部上线”。
+来源：[PHP 官方安全公告](https://www.php.net/archive/2026.php)、[OpenAI 协调披露说明](https://openai.com/index/coordinated-disclosure-of-critical-vulnerabilities/)、[ENISA 联合声明](https://www.enisa.europa.eu/news/joint-statement-on-critical-php-vulnerabilities)。事件与发布：2026-10-21；查阅：2026-10-22。
 
-**解读与边界：** 真正值得验证的是从“会后摘要”到“可追溯行动”的转化。接入前仍应确认套餐、权限与实际开放范围；有接口并不意味着所有会议材料都可跨系统使用，也不意味着 Agent 可以默认执行所有动作。
+## 四、开放模型：Flint 把本地编码与推理优化一起交付
 
-来源：[Zoom 官方公告](https://news.zoom.com/zoomtopia-2026-news/)。事件与发布：2026-10-20；查阅：2026-10-21。
+### 04｜39.8B 总参数、约 2.5B 激活，不能只按激活参数估算内存
 
-## 四、产品小更新：锁定对话，主要改变访问入口
+Recursive 发布面向编码 Agent 的 Flint，官方模型卡列出 **39.8B 总参数、每 token 约 2.5B 激活参数**，支持文本、推理和多轮工具调用，权重采用 **Apache-2.0**。Inferact 与 Recursive **10 月 21 日**在 vLLM 博客联合发布首日支持说明，提供 BF16 与 NVFP4 路径。首日支持使用专用镜像，常规安装仍需确认版本是否已包含支持。
 
-### 05｜ChatGPT Enterprise / Edu 逐步推出 locked chats
+发布方称，其优化引擎在 **M4 Pro MacBook Pro 的短上下文**下超过 125 token/s。这是厂商条件化测试，不是任意 Mac、任意上下文或普通运行时的保证；本刊未复现。官方 BF16 模型仓库的下载量级约 **80GB**，本地量化方案则需另看硬件与运行时要求。
 
-OpenAI **10 月 20 日**的企业及教育版发布说明新增锁定对话：选定聊天可从常规历史、置顶与搜索中隐藏，打开需账户 PIN 或受支持的设备认证。功能正向网页、移动端及新版桌面端逐步推出，本条核实范围为 **Enterprise / Edu**，不外推到所有套餐。
+**值得留意的文档差异：** 发布博客提到最高 512K 上下文、建议控制在 256K 内；当前模型卡列出的配置为 **262,144 token，输入与输出共用**。部署应以所选检查点和运行时的实际配置为准，不将理论上限当成质量保证。
 
-**使用边界：** 锁定不是删除。组织的保留与合规规则仍适用，对话仍包含在 Compliance Platform 的消息日志中。它适合减少普通界面中的偶然暴露，不能据此承诺管理员不可见或数据已被清除。
+**解读：** 价值在于把可检查的模型、量化与推理工程接到本地编码流程。评估应使用自己的代码库、测试集和内存预算；模型会生成错误代码或不当工具调用，仍需沙箱、权限限制与人工审查。
 
-来源：[官方发布说明的 10 月 20 日条目](https://help.openai.com/en/articles/10128477-chatgpt-enterprise-and-edu-release-notes)。发布：2026-10-20；查阅：2026-10-21。
+来源：[Recursive 发布介绍](https://recursive.com/updates/introducing-recursive-flint)、[官方模型卡与许可](https://huggingface.co/RecursiveSI/flint)、[vLLM 首日支持](https://vllm-project.github.io/2026/10/21/flint.html)。首日支持说明：2026-10-21；查阅：2026-10-22。
 
-## 五、Tibo 动态：社区将 12 小时提示缓存列为 Day 16
+## 五、企业工具：Claude Security 从扫描报告走向持续追踪
 
-本轮社区整理的 **10 月 20 日第 79 帖**把“API 可选择 12 小时提示缓存”归入 Day 16，并链接 OpenAI Developers 的 X 帖。该 X 链接本轮返回 403，**Day 16 归属仍是社区证据，不是已直读 Tibo 原帖**；但功能本身已由 OpenAI API 官方文档确认。
+### 05｜持续扫描、修复状态和 API / MCP 同时更新
 
-当前文档明确，**GPT-5.6 及以后模型的 Responses API** 可选择默认 30 分钟或 12 小时的最低缓存有效期。30 分钟缓存写入按普通未缓存输入价的 **1.25 倍**计费，12 小时按 **2.5 倍**，读取单价不因这两个有效期选项而改变。
+Anthropic **10 月 21 日**更新 Claude Security，面向 **Claude Enterprise 客户公开测试**。新流程先建立代码基线，再按变更风险与复杂度持续扫描；问题修复后更新状态，再次出现时重新打开。
 
-**解读：** 长间隔反复复用稳定前缀时，较长缓存可能减少重写；写入更贵，所以不能写成无条件降价。应按真实复用频率与账单核算，最低缓存有效期也不是数据删除期限。
+项目可关联多个仓库，并加入团队维护的部署背景、策略与威胁模型。新增 API、Webhooks、MCP 连接器及角色权限，让发现、分派和修复更容易接回已有工具。它不是今天才首次公测，本次新闻是持续监测与工作流能力的扩展。
 
-本次缓存更新不能推出任何 ChatGPT / Codex 套餐额度已重置。社区另有关于 reset 的讨论，但未取得足以确认当前账号适用情况的直接证据，本期不作额度结论。
+**解读与边界：** 比起多生成一份报告，持续确认问题是否已修复更贴近安全运营。接入前仍要限定仓库、分支、访问权限及费用控制；自动标记修复不替代测试，“未发现”也不等于不存在漏洞。
 
-来源：[官方提示缓存文档](https://developers.openai.com/api/docs/guides/prompt-caching)、[社区第 79 帖所在页](https://community.openai.com/t/12-hour-prompt-caching-day-16-of-28-days-of-quality-of-life-improvements-and-or-a-full-reset/1403525?page=4)、[被引用的官方 X 帖（本轮直读受限）](https://x.com/OpenAIDevs/status/2112603916076781778)。社区帖标注日期：2026-10-20；文档查阅：2026-10-21。文档未提供该功能的精确首发时刻。
+来源：[Anthropic 更新说明](https://claude.com/resources/articles/claude-security-now-scans-continuously-and-tracks-fixes)。发布：2026-10-21；查阅：2026-10-22。
 
-## 六、每日 GitHub AI 热点：垂直工作流、安全审计与代码知识图谱
+## 六、Tibo 动态：Day 17 有重置时间修正，到账仍未核实
 
-**采样时间：2026-10-21 09:15（北京时间，01:15 UTC）。** 数据统一取自同次直接打开的 [GitHub Trending 主页面](https://github.com/trending)，筛选为 Today、全部编程语言与自然语言；页面标记当日抓取，未提供榜单生成的精确时刻。
+[社区跟踪帖](https://community.openai.com/t/28-days-of-shipping-at-openai/1403897) 已补录 Day 17，摘要称先宣布 reset，随后将时间修正为“tomorrow before 10am PST”，并提醒 Daybreak Blue access。**这是社区整理，不是本刊已直接核验的官方原文。**
 
-下列四项是从日榜挑选的 AI 项目，不是全榜前四，也不意味着当天首发。日榜的 `stars today` 是 GitHub 展示窗口，**不是本刊实测滚动 24 小时净增，也不是北京时间自然日新增**。累计 Star 与增量使用同页快照，不混用搜索摘要或其他时刻数字。
+页面引用的 [Tibo 原帖](https://x.com/thsottiaux/status/2113162277688070445) 本次访问返回 403，无法独立核对正文、原帖日期及 PST / PDT 用法。因此本期不把“tomorrow”换算成北京时间承诺，也不声称重置已完成、所有套餐适用或个人账户额度已到账。Day 18–28 在该跟踪页仍标为 pending。
 
-| 项目 | 日榜增星 | 同页累计 Star | 仓库许可 | 关注点 |
+社区页面查阅：2026-10-22 晚间。**有时间修正线索，不等于有额度到账证据。**
+
+## 七、每日 GitHub AI 热点：简化编码、模型服务与跨会话记忆
+
+**采样时间：2026-10-22 21:57（北京时间，13:57 UTC）。** 数据来自同次读取的 [GitHub Trending](https://github.com/trending) Today 页面；下表累计 Star 与日榜增星使用同页快照，不混用仓库主页或搜索摘要。
+
+这些是从日榜选出的四个 AI 项目，不是全榜前四，也不代表今天首发。GitHub 的 `stars today` 是其展示窗口，**不是本刊实测的滚动 24 小时净增，也不是北京时间自然日新增**。排序不构成安装或投资推荐。
+
+| 项目 | 日榜增星 | 同页累计 Star | 仓库代码许可 | 关注点 |
 | --- | ---: | ---: | --- | --- |
-| [AI Job Search](https://github.com/MadsLorentzen/ai-job-search) | +3,861 | 60,589 | MIT | 求职工作流与个人资料保护 |
-| [Security Audit Skill](https://github.com/cloudflare/security-audit-skill) | +1,712 | 34,230 | MIT | 分阶段审计、验证与执行隔离 |
-| [Graphify](https://github.com/Graphify-Labs/graphify) | +802 | 130,244 | 仓库含 Apache-2.0 / MIT | 代码图谱及语义处理的数据去向 |
-| [Knowledge Work Plugins](https://github.com/anthropics/knowledge-work-plugins) | +267 | 30,794 | Apache-2.0 | 按岗位组织技能与连接器 |
+| [Ponytail](https://github.com/DietrichGebert/ponytail) | +2,079 | 172,449 | MIT | 约束编码代理过度实现 |
+| [Kronos](https://github.com/shiyu-coder/Kronos) | +575 | 43,046 | MIT | 金融时间序列研究 |
+| [vLLM](https://github.com/vllm-project/vllm) | +441 | 95,090 | Apache-2.0 | 推理与多请求服务 |
+| [ai-memory](https://github.com/akitaonrails/ai-memory) | +286 | 12,600 | MIT | 跨会话项目上下文 |
 
-### G1｜AI Job Search：可参考的垂直流程，先避免公开个人档案
+### G1｜Ponytail：让编码代理先复用，再决定是否新增
 
-项目围绕 Claude Code 组织岗位评估、简历定制、求职信与面试准备，适合研究如何把通用 Agent 变成可审阅的专业流程。它是独立项目，并非 Anthropic 官方产品；招聘门户技能以丹麦市场为主，迁移时需要本地化，也需准备相应运行环境和模型服务。
+项目以技能形式接入 Claude Code、Codex 等工具，强调复用已有组件、减少不必要实现，并提供变更 review 与全仓 audit。适合研究如何让代理交付更容易审查的改动。
 
-**重要风险：** README 明确警告，公开仓库的 fork 仍公开，而初始化会把个人资料写进被 Git 跟踪的文件。个人使用应先按项目说明建立合适的私有工作副本，避免把联系方式、工作经历和薪资期望推到公开仓库。生成的经历与申请内容要逐项人工核实，作者自身求职结果不构成效果保证。
+**门槛与风险：** 作者的代码量、成本和时间改善来自特定任务测试，本刊未复现，不能推广成通用保证。Codex 接入涉及生命周期 hooks，应先审阅运行行为及权限；代码更少也不自动意味着更安全。
 
-依据：[README](https://github.com/MadsLorentzen/ai-job-search/blob/master/README.md)、[MIT 许可证](https://github.com/MadsLorentzen/ai-job-search/blob/master/LICENSE)。
+依据：[README](https://github.com/DietrichGebert/ponytail/blob/main/README.md)、[MIT 许可证](https://github.com/DietrichGebert/ponytail/blob/main/LICENSE)。
 
-### G2｜Cloudflare Security Audit Skill：让发现与复核分开
+### G2｜Kronos：金融序列基础模型，不是收益承诺
 
-Cloudflare 的 skill 将单仓库安全审计组织为侦察、覆盖率驱动排查、候选验证、结构化结果、独立复核和报告六个阶段，适合已有编码 Agent 与安全审查能力的开发团队。
+Kronos 将金融 OHLCV 序列离散化后交给自回归 Transformer，提供预测与微调示例，适合离线研究和方法比较。当前 README 列出的 mini、small、base 可获取，**large 尚未开放**，不能说全系列都已开源。
 
-**门槛与风险：** 目标代码的构建、测试或模糊测试需操作系统级沙箱、禁外网、限制写入和资源用量。缺少这些控制时，项目要求保留“待验证”，而不是执行目标代码。这个流程提供检查框架，不能把一次自动审计或“没有发现”当作系统安全证明。
+**评估边界：** 预测能力不等于可执行、可获利的策略。实验应避免数据泄漏，加入样本外验证，并考虑手续费、滑点与市场变化。本条只介绍研究工具，不提供交易建议；MIT 代码许可也不自动替代各模型权重的许可。
 
-依据：[README 与执行要求](https://github.com/cloudflare/security-audit-skill/blob/main/README.md)、[MIT 许可证](https://github.com/cloudflare/security-audit-skill/blob/main/LICENSE)。
+依据：[README](https://github.com/shiyu-coder/Kronos/blob/master/README.md)、[MIT 许可证](https://github.com/shiyu-coder/Kronos/blob/master/LICENSE)。
 
-### G3｜Graphify：代码结构本地解析，语义处理仍要检查后端
+### G3｜vLLM：老项目仍在增长，今天可结合 Flint 看服务支持
 
-Graphify 把代码与相关文档组织为可查询知识图谱。代码通过本地 tree-sitter AST 解析，适合代码库导航、关系查找与影响范围分析；本期未安装或验证其节省 token 的宣传数据。
+vLLM 是成熟的开源推理生态项目，提供 PagedAttention、连续批处理、前缀缓存、量化及兼容 OpenAI 的 API 服务接口。本期单列其日榜表现，并非把它当新项目；上文 Flint 的首日支持则是具体新进展。
 
-**数据边界：** 文档、PDF 和图片的语义提取可能调用模型；无头模式可根据已设置的 API key 自动选择服务商。代码本地解析不等于所有流程离线。有数据驻留要求时，应明确后端或关闭 LLM 处理，并检查默认的本地查询日志。仓库包含两份许可文件，复用具体文件与依赖时仍应分别核对。
+**部署边界：** 模型、硬件、量化精度和请求长度共同决定兼容性与性能。引擎可用不代表特定模型组合已经通过自己的生产测试；代码许可也不覆盖模型权重、数据与服务条款。
 
-依据：[README 与隐私说明](https://github.com/Graphify-Labs/graphify/blob/v8/README.md)、[Apache-2.0 文件](https://github.com/Graphify-Labs/graphify/blob/v8/LICENSE)、[MIT 文件](https://github.com/Graphify-Labs/graphify/blob/v8/LICENSE-MIT)。
+依据：[README](https://github.com/vllm-project/vllm/blob/main/README.md)、[Apache-2.0 许可证](https://github.com/vllm-project/vllm/blob/main/LICENSE)。
 
-### G4｜Anthropic Knowledge Work Plugins：官方模板，需要按组织改造
+### G4｜ai-memory：跨代理延续上下文，也会扩大信息留存范围
 
-Anthropic 官方仓库提供面向 Cowork、同时兼容 Claude Code 的岗位插件，为销售、产品、数据等工作组合技能、连接器、命令及子代理。适合参考工作流结构，而不是把通用模板直接当成企业制度。
+项目通过生命周期 hooks 捕获工作上下文，整理成由 Git 管理的 Markdown wiki，再以检索和有长度限制的简报支持跨会话、跨代理交接。README 说明默认不要求调用 LLM，适合经常切换编码工具的开发者。
 
-**成熟度与风险：** README 把这些插件定位为可定制的起点。接入 CRM、企业搜索或数据仓库前，应核对连接器权限、数据范围及哪些动作需要确认；插件代码开源不等于所接服务免费，也不替代模型、数据和外部服务的条款。
+**部署与隐私：** 先检查捕获范围、保存内容和同步目的地。README 提醒旧安装及 Docker quick-start 可能在启用认证前无认证运行，不应直接按本地默认配置暴露到网络；一个数据目录也只能由一个服务实例使用。“默认不调用 LLM”不等于内容不会被后续同步或代理读取。
 
-依据：[README](https://github.com/anthropics/knowledge-work-plugins/blob/main/README.md)、[Apache-2.0 许可证](https://github.com/anthropics/knowledge-work-plugins/blob/main/LICENSE)。
+依据：[README](https://github.com/akitaonrails/ai-memory/blob/main/README.md)、[MIT 许可证](https://github.com/akitaonrails/ai-memory/blob/main/LICENSE)。
 
-项目文档与许可证查阅：2026-10-21。本期未安装实测，关注度不等于安全、成熟度或性能证明。
+项目文档与许可证查阅：2026-10-22。本期未安装实测；关注度不等于安全性、成熟度或性能证明。
 
 ## 读完之后，值得做的三件事
 
-1. **自建模型服务：** 先列清硬件、缓存、路由、在线服务和运维缺口，再比较引擎与编排层；用自己的负载测端到端结果。
-2. **优化 Agent 成本：** 按上下文复用间隔分别测缓存写入和读取，不只看缓存有效期或单次 token 价格。
-3. **采用工作流项目：** 先检查隐私、连接器和执行权限，尤其别把求职档案推入公开 fork；把生成、复核与对外执行分开。
+1. **试用主动 Agent：** 先限定连接应用与执行权限，观察后台额度消耗，再决定是否扩大任务范围。
+2. **维护生产服务：** 使用 PHP 的团队优先核对供应商安全更新；准备试用云模型的团队则先区分私有预览与尚未上线的安全选项。
+3. **评估本地 AI 工具：** 用真实代码任务、硬件内存和测试结果判断，不把厂商短上下文速度、GitHub 热度或激活参数量直接当成部署结论。
 
-本期区分已发布代码、逐步推出功能、未来路线图与社区线索。未复现厂商性能，未确认个人账号额度变化。上一篇完整正文见 [第 009 期归档](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-20.md)。
+本期区分研究预览、私有预览、公测、正式补丁与社区线索。未复现厂商性能，未确认个人账号额度变化。上一篇完整正文见 [第 010 期归档](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-21.md)。
