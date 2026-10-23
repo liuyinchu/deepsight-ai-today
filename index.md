@@ -1,150 +1,154 @@
 # AI 前沿札记
 
-> 更新日期：2026-10-22（Asia/Shanghai） · 第 011 期
+> 更新日期：2026-10-23（Asia/Shanghai） · 第 012 期
 >
-> 信息范围：以 10 月 21 日发布、截至 10 月 22 日晚间可核实的新进展为主；预览、正式可用、未来计划分别标注，不把今日上榜当成今日首发。
+> 信息范围：以 10 月 22 日发布、截至 10 月 23 日下午可核实的进展为主，补充本期尚未报道的世界模型工具更新。原始来源的发布日期与北京时间分别说明。
 >
-> 新闻与文档查阅：2026-10-22 晚间（北京时间，UTC+8）。来源仅标日期时保留原日期，不补写精确发布时间；GitHub 快照的采样时刻另列。
+> 新闻与文档查阅：2026-10-23 下午（北京时间，UTC+8）。预览、分批推出与未来集成不混写；GitHub 快照时间另列。
 
-## 本期关注：主动 Agent 开始进入产品，AI 安全进入修复闭环
+## 本期关注：Agent 的标准、登录权限与运行环境正在补齐
 
-今天最值得关注的不是又一张排行榜，而是 AI 开始如何持续工作：Claude Duet 尝试主动跟进任务，Google Cloud 引入 OpenAI 模型，安全团队则把模型发现的漏洞推进到正式补丁。另一条值得开发者观察的线，是 Flint 把编码模型与本地推理优化一起交付。
+今天的重点是让 AI 更容易接入实际工作：Agent Skills 等项目进入中立基金会，1Password 把凭据与代理分开，NVIDIA 补充集群运维与世界模型开发工具，Google Meet 则扩大实时翻译范围。这些变化不必依赖新聊天模型，也会影响团队怎样部署、使用和约束 AI。
 
 **先看这五件事：**
 
-- **Claude Duet：** 开放美国 Pro / Max 用户候补名单，是研究预览；后台检查与普通 Claude 共用额度。
-- **Google Cloud × OpenAI：** 部分企业已进入私有预览，正式全面可用仍是未来数周的计划。
-- **PHP 安全修复：** AI 辅助漏洞发现已有实际补丁落地，使用 PHP 的团队应优先核查供应商更新。
-- **Flint：** 开放权重与本地编码推理方案；速度宣传必须连同硬件、精度和上下文条件一起读。
-- **Claude Security：** 新增持续扫描、修复追踪及 API / MCP，面向 Enterprise 公测，不是所有订阅默认可用。
+- **AAIF：** 新接收 Agent Skills、Open Responses、OpenEnv、OpenSandbox，变化是治理归属，不是四个项目今天首次问世。
+- **1Password for Agents：** 用户批准后由密码管理器填入凭据；Claude Duet、ChatGPT Work 和 dots 的集成仍待上线。
+- **NVIDIA Minerva：** 将 GPU、网络、存储和作业遥测关联起来，帮助排查 AI 集群故障。
+- **Cosmos：** 扩展数据生成、训练、仿真与部署工具；合成数据仍需真实场景验证。
+- **Google Meet：** 实时语音翻译扩至 63 种语言，支持个人选择译入语言，但按套餐与发布轨道分批推出。
 
-## 一、Claude Duet：从等你提问，转向主动跟进
+## 一、开放标准：四个 Agent 项目进入 AAIF
 
-### 01｜主动助手进入研究预览，但后台工作也会消耗额度
+### 01｜Agent Skills 捐赠之外，接口、训练环境和沙箱也进入共同治理
 
-Anthropic **10 月 21 日**发布 Claude Duet，提供独立 iOS / Android 应用及网页入口，首批面向**美国 Pro 和 Max 用户开放候补名单**。它可结合已连接应用提供简报、跟进事项，在自己的虚拟机与浏览器中继续处理任务，不要求用户设备一直开机。
+Agentic AI Foundation（AAIF）在 **10 月 22 日**宣布接收四个项目：Anthropic 的 **Agent Skills**、OpenAI 的 **Open Responses**、Hugging Face 的 **OpenEnv** 和阿里巴巴的 **OpenSandbox**。
 
-官方说明，它继承 Claude 的记忆、技能与连接应用；发送消息、付款、签署文件或删除内容前需等待用户批准。当前仍可能误读对话、误判紧急程度，也暂不能向用户展示其浏览器。
+它们分别覆盖可复用技能、跨模型接口、强化学习环境，以及 Agent 执行环境。基金会新闻稿标注 **10 月 22 日 12:00 ET，即北京时间 10 月 23 日 00:00**。这是项目进入中立治理的新进展，不应把已有代码或规范说成刚刚首次发布。
 
-**使用边界：** Duet 与现有 Claude **共享套餐使用上限**，后台检查同样计入，并非订阅之外赠送一份无限 Agent 额度。加入候补名单也不等于立即获得访问。
+Anthropic 同日确认，捐赠包括 Agent Skills 的名称、标识、GitHub 组织和域名；使用及贡献不要求加入 AAIF。版本化发布、正式提案流程和安全指南仍属于**提出的路线图**，不能写成已交付的新规范。
 
-**解读：** 这类产品真正要验证的，是能否少打扰地找出重要事项，并在正确边界内完成工作。试用时应从少量连接器和低风险任务开始，同时观察后台消耗，而不只看一次演示。
+**解读：** 对开发者，值得观察的是跨平台技能和接口能否减少重复适配，以及未来如何处理兼容性与安全问题。治理中立不自动保证各实现完全兼容，也不会让第三方技能中的脚本天然可信，采用前仍应审阅内容、固定版本并限制执行权限。
 
-来源：[Anthropic 官方介绍](https://claude.com/resources/articles/claude-duet)。发布：2026-10-21；查阅：2026-10-22。
+来源：[AAIF 发布的新闻稿](https://www.prnewswire.com/news-releases/agentic-ai-foundation-announces-four-new-projects-agent-skills-open-responses-openenv-and-opensandbox-302916689.html)、[Anthropic 捐赠公告](https://www.anthropic.com/news/donating-agent-skills-to-the-agentic-ai-foundation)。发布：2026-10-22；查阅：2026-10-23。
 
-## 二、模型分发：OpenAI 进入 Google Cloud，但不是全面开放
+## 二、Agent 登录：批准使用账号，不等于把密码交给模型
 
-### 02｜私有预览已启动，采购与治理比“多一个模型入口”更重要
+### 02｜1Password for Agents 发布，具体集成需要逐项看进度
 
-Google Cloud **10 月 21 日**宣布，**GPT-6 Astra、GPT-6.1 Sol、GPT-6 Luna** 正向部分企业客户提供 Model Garden 私有预览。获准客户可通过 API 使用，也可将本地 Codex CLI / Desktop 工作流接到 Google 平台进行推理。
+1Password **10 月 22 日**宣布面向个人 AI Agent 的平台。按官方设计，代理在需要登录时发起请求，用户在 1Password 中选择并批准凭据，再由 1Password 直接填入目标网站，避免把密码或一次性验证码暴露给代理。
 
-采购通过 Google Cloud Marketplace，相关消费可抵扣已有 Google Cloud 消费承诺。OpenAI 同日公告将**正式全面可用（GA）列为未来数周的计划**，因此不能将私有预览写成所有客户今天都能用。
+**当前适用范围：** 1Password.com 上的 Individual 与 Family 账号无需额外付费，1Password.eu 和 1Password.ca 账号暂不支持。Muse、Grok Bot 集成将在未来数日陆续推出；**Claude Duet、ChatGPT Work、dots 和 Town Townie 仍标为 coming soon**。因此不能把整个平台发布理解为这些助手今天已经全部接通。
 
-**尚未落地的部分：** Google Antigravity、Gemini for business 的接入，以及 Zero Data Retention 和 Confidential Compute 选项，Google 均标为 coming soon。本次发布不能据此推导这些能力已经生效。
+**解读与边界：** 凭据隔离可以减少秘密进入模型上下文的机会，但账号登录成功后，代理仍可能访问该账号内的数据并执行操作。应分别控制“允许登录哪些账号”和“允许在账号里做什么”；官方也说明不同集成的保障与控制有所差异。本期未连接或实测任何集成。
 
-**解读：** 对已有 GCP 合同和治理体系的团队，这可能减少多供应商采购与接入摩擦。但做迁移决定前，仍需核实预览资格、实际区域、价格与数据处理条款，不能把未来安全选项纳入今天的合规保证。
+来源：[1Password 官方公告](https://1password.com/blog/1password-for-ai-agents)。发布：2026-10-22；查阅：2026-10-23。
 
-来源：[Google Cloud 公告](https://cloud.google.com/blog/products/ai-machine-learning/google-cloud-brings-openai-models-to-customers)、[OpenAI 公告](https://openai.com/index/openai-models-google-cloud/)。发布：2026-10-21；查阅：2026-10-22。
+## 三、AI 集群运维：Minerva 关注有效产出，而不只看 GPU 数量
 
-## 三、AI 安全：发现漏洞之后，更重要的是让补丁部署下去
+### 03｜NVIDIA 将基础设施与工作负载放进同一张故障关系图
 
-### 03｜PHP 发布关键修复，AI 辅助发现进入真实维护流程
+NVIDIA **10 月 22 日**发布 Minerva AIOps 平台。官方直播页的条目时间为 **08:00 PDT，即北京时间 23:00**。它关联 GPU、网络、存储、调度器与作业遥测，构建动态知识图谱，用于识别异常、关联告警并定位可能的根因。
 
-OpenAI **10 月 21 日**披露，Calif 在 Patch the Planet 项目中使用 GPT-5.6 Sol 识别出一个关键 PHP 漏洞，Wiz 也独立发现并报告了这两项漏洞；修复与版本发布由 PHP 维护者主导。这不是“模型单独修好了互联网”，而是研究者、维护者和安全厂商的协作结果。
+内置助手可基于实时遥测回答集群健康问题并提出修复建议。团队可以保留人工实施修复，也可以通过基础设施 API 接入自动化；发布并不意味着运维必须交给无人审批的 Agent。
 
-PHP 官方已发布 **8.5.12、8.4.27、8.3.36、8.2.35**，修复可导致未经认证远程代码执行的 **CVE-2026-109618 / CVE-2026-109619**。官方将服务 Web 请求的 PHP 安装列为风险范围，要求尽快更新。ENISA 记载补丁发布于 **10 月 21 日 13:40 UTC，即北京时间 21:40**，不是本期日期当天才发布。
+**部署情况：** 官方称 IREN 已使用 Minerva，IBM、Jio、Lambda、Tesla 等列为计划部署。公告没有提供可据此确认所有客户均可立即购买的统一 GA 范围或公开定价，不能把合作名单全部写成已落地客户。
 
-**实际行动：** 先盘点 PHP 服务并核对发行版或托管服务商的安全更新，再按其说明升级、测试。发行版可能回补补丁，不能只凭上游版本字符串断言是否安全；缓解措施也不能替代完整修复。此处仅提示核查，不提供利用细节。
+**解读：** 单个退化组件可能拖慢整项训练或推理任务。将作业与底层故障关联，比只看设备利用率更接近“有多少算力真正完成有效工作”。实际收益仍应以自己的误报率、故障定位时间、修复时间和有效吞吐衡量，本刊未验证厂商效果。
 
-**解读：** AI 安全的有效指标不应只是“发现多少漏洞”，还应看验证、协调披露、修复和部署是否闭环。本次没有证据支持把某个网站占比直接等同于实际受攻击比例。
+来源：[Minerva 官方介绍](https://blogs.nvidia.com/blog/minerva-platform-infrastructure/)、[GTC 官方时间记录](https://blogs.nvidia.com/gtc-berlin-2026-news/)。发布：2026-10-22；查阅：2026-10-23。
 
-来源：[PHP 官方安全公告](https://www.php.net/archive/2026.php)、[OpenAI 协调披露说明](https://openai.com/index/coordinated-disclosure-of-critical-vulnerabilities/)、[ENISA 联合声明](https://www.enisa.europa.eu/news/joint-statement-on-critical-php-vulnerabilities)。事件与发布：2026-10-21；查阅：2026-10-22。
+## 四、世界模型：Cosmos 扩展从数据到部署的工具
 
-## 四、开放模型：Flint 把本地编码与推理优化一起交付
+### 04｜五类 Data Factory 蓝图，加上模型适配与仿真工具
 
-### 04｜39.8B 总参数、约 2.5B 激活，不能只按激活参数估算内存
+本条原文显示 **10 月 21 日**，官方直播页记录为 **21 日 22:00 PDT，即北京时间 22 日 13:00**。这是本期补充报道，并非 23 日新发布。
 
-Recursive 发布面向编码 Agent 的 Flint，官方模型卡列出 **39.8B 总参数、每 token 约 2.5B 激活参数**，支持文本、推理和多轮工具调用，权重采用 **Apache-2.0**。Inferact 与 Recursive **10 月 21 日**在 vLLM 博客联合发布首日支持说明，提供 BF16 与 NVFP4 路径。首日支持使用专用镜像，常规安装仍需确认版本是否已包含支持。
+NVIDIA 更新 Cosmos Data Factory，提供自动驾驶数据生成、图像属性增强、事件视频生成、缺陷图像生成和视频增强五类蓝图。官方列出的获取渠道包括 GitHub、Azure、Nebius 与 CoreWeave。
 
-发布方称，其优化引擎在 **M4 Pro MacBook Pro 的短上下文**下超过 125 token/s。这是厂商条件化测试，不是任意 Mac、任意上下文或普通运行时的保证；本刊未复现。官方 BF16 模型仓库的下载量级约 **80GB**，本地量化方案则需另看硬件与运行时要求。
+同时，Cosmos Framework 扩展微调、强化学习、蒸馏和量化工具；新的 Cosmos 3 Nano 仿真变体用于可重复的多视角、多传感器场景测试。更新后的 NIM 宣称在**已验证配置**下最高可实现 2 倍推理速度，不是任意硬件与模型的统一提升，本刊未复现。
 
-**值得留意的文档差异：** 发布博客提到最高 512K 上下文、建议控制在 256K 内；当前模型卡列出的配置为 **262,144 token，输入与输出共用**。部署应以所选检查点和运行时的实际配置为准，不将理论上限当成质量保证。
+**解读：** 对机器人和工业视觉团队，重点是能否更便宜地补充难以采集的场景，并形成可重复评测。合成画面看起来合理，不等于物理规律、缺陷分布或策略行为已可靠；仍需用真实保留集和实际环境验证，分别核对代码、权重、数据和部署服务条款。
 
-**解读：** 价值在于把可检查的模型、量化与推理工程接到本地编码流程。评估应使用自己的代码库、测试集和内存预算；模型会生成错误代码或不当工具调用，仍需沙箱、权限限制与人工审查。
+来源：[Cosmos 官方更新](https://blogs.nvidia.com/blog/cosmos-open-train-evaluate-deploy-world-models/)、[GTC 官方时间记录](https://blogs.nvidia.com/gtc-berlin-2026-news/)。原文日期：2026-10-21；北京时间记录：2026-10-22；查阅：2026-10-23。
 
-来源：[Recursive 发布介绍](https://recursive.com/updates/introducing-recursive-flint)、[官方模型卡与许可](https://huggingface.co/RecursiveSI/flint)、[vLLM 首日支持](https://vllm-project.github.io/2026/10/21/flint.html)。首日支持说明：2026-10-21；查阅：2026-10-22。
+## 五、日常产品：Meet 的实时翻译不再只配置一组语言
 
-## 五、企业工具：Claude Security 从扫描报告走向持续追踪
+### 05｜63 种语言、自动识别与个人控制，先确认套餐和发布轨道
 
-### 05｜持续扫描、修复状态和 API / MCP 同时更新
+Google **10 月 22 日**宣布，Meet 实时语音翻译扩展至 **63 种语言**，由 Gemini 3.5 Live Translate 支持。参会者可独立启用翻译并选择听取语言，系统自动识别说话语言，同时提供与译后音频同步的字幕。此次新闻是 Meet 功能扩展，不是该模型首次发布。
 
-Anthropic **10 月 21 日**更新 Claude Security，面向 **Claude Enterprise 客户公开测试**。新流程先建立代码基线，再按变更风险与复杂度持续扫描；问题修复后更新状态，再次出现时重新打开。
+**推出节奏：** Rapid Release 从 10 月 22 日开始，预计 1–3 天可见；Scheduled Release 从 **11 月 2 日**开始，最多 15 天。会议组织者须有符合条件的 Workspace 或 Google AI 套餐，并满足管理员设置；符合条件的会议可向所有参会者开放，包括外部访客。一对一通话任一方符合套餐条件即可。
 
-项目可关联多个仓库，并加入团队维护的部署背景、策略与威胁模型。新增 API、Webhooks、MCP 连接器及角色权限，让发现、分派和修复更容易接回已有工具。它不是今天才首次公测，本次新闻是持续监测与工作流能力的扩展。
+符合条件的基础套餐通常每场可翻译 **90 分钟**，较高 AI 档位可到 **8 小时**。网页、Android 和 iOS 支持该能力，会议室硬件仅能听取远端翻译，其自身发言不会因此翻译给其他人；直播、会议录制及客户端加密会议等场景不支持。
 
-**解读与边界：** 比起多生成一份报告，持续确认问题是否已修复更贴近安全运营。接入前仍要限定仓库、分支、访问权限及费用控制；自动标记修复不替代测试，“未发现”也不等于不存在漏洞。
+**解读：** 多语言团队可少做会议级配置，但关键数字、专有名词和决策仍应复核。组织者应先确认实际账号是否开放，再安排依赖翻译的会议。
 
-来源：[Anthropic 更新说明](https://claude.com/resources/articles/claude-security-now-scans-continuously-and-tracks-fixes)。发布：2026-10-21；查阅：2026-10-22。
+来源：[Google Workspace 官方更新](https://workspaceupdates.googleblog.com/2026/10/real-time-speech-translation-in-google-Meet-expands-to-63-languages-with-automatic-language-detection.html?m=1)。发布：2026-10-22；查阅：2026-10-23。
 
-## 六、Tibo 动态：Day 17 有重置时间修正，到账仍未核实
+## 六、Tibo 动态：Day 18 的重置仍只有待执行线索
 
-[社区跟踪帖](https://community.openai.com/t/28-days-of-shipping-at-openai/1403897) 已补录 Day 17，摘要称先宣布 reset，随后将时间修正为“tomorrow before 10am PST”，并提醒 Daybreak Blue access。**这是社区整理，不是本刊已直接核验的官方原文。**
+独立社区追踪站收录了 **Day 18（太平洋时间 10 月 22 日）** 的更新，转述 Tibo 提及产品和性能进展，并宣布 reset；该条状态仍标为 **Scheduled**。
 
-页面引用的 [Tibo 原帖](https://x.com/thsottiaux/status/2113162277688070445) 本次访问返回 403，无法独立核对正文、原帖日期及 PST / PDT 用法。因此本期不把“tomorrow”换算成北京时间承诺，也不声称重置已完成、所有套餐适用或个人账户额度已到账。Day 18–28 在该跟踪页仍标为 pending。
+本次未取得可直接核验的 X 原帖正文或官方完成确认，因此只将其作为待核实线索，不据此宣布额度已到账。追踪站其他位置的 Day 17 完成记录，也不能拿来证明 Day 18 已执行。其概率估计不代表 OpenAI 承诺，具体额度应以账号用量页为准。
 
-社区页面查阅：2026-10-22 晚间。**有时间修正线索，不等于有额度到账证据。**
+截至本次查阅，尚未核实 Day 19 新交付。上文 Open Responses 加入 AAIF 已另由基金会新闻稿确认，不依赖这条社区转述。
 
-## 七、每日 GitHub AI 热点：简化编码、模型服务与跨会话记忆
+来源：[独立追踪站 Day 18 记录](https://didcodexreset.com/history/1792730779000.html)。查阅：2026-10-23 下午。来源等级：二手追踪，未确认个人账号额度变化。
 
-**采样时间：2026-10-22 21:57（北京时间，13:57 UTC）。** 数据来自同次读取的 [GitHub Trending](https://github.com/trending) Today 页面；下表累计 Star 与日榜增星使用同页快照，不混用仓库主页或搜索摘要。
+## 七、每日 GitHub AI 热点：看清上下文、文件处理与模型网关
 
-这些是从日榜选出的四个 AI 项目，不是全榜前四，也不代表今天首发。GitHub 的 `stars today` 是其展示窗口，**不是本刊实测的滚动 24 小时净增，也不是北京时间自然日新增**。排序不构成安装或投资推荐。
+本期采用 **GitHub Trending 的 Today 语言分榜**，不是全站统一前四名。Python 分榜采样于 **2026-10-23 15:14:37**，TypeScript 分榜采样于 **15:14:36**，均为北京时间（UTC+8）。
 
-| 项目 | 日榜增星 | 同页累计 Star | 仓库代码许可 | 关注点 |
-| --- | ---: | ---: | --- | --- |
-| [Ponytail](https://github.com/DietrichGebert/ponytail) | +2,079 | 172,449 | MIT | 约束编码代理过度实现 |
-| [Kronos](https://github.com/shiyu-coder/Kronos) | +575 | 43,046 | MIT | 金融时间序列研究 |
-| [vLLM](https://github.com/vllm-project/vllm) | +441 | 95,090 | Apache-2.0 | 推理与多请求服务 |
-| [ai-memory](https://github.com/akitaonrails/ai-memory) | +286 | 12,600 | MIT | 跨会话项目上下文 |
+每项累计 Star 与 `stars today` 来自同一行直接读取的 HTML，不用不同时刻的累计量相减。Today 是 GitHub 的展示窗口，**不等于本刊实测的滚动 24 小时，也不等于北京时间自然日**。上榜不代表当天首发，热度不构成安装建议。
 
-### G1｜Ponytail：让编码代理先复用，再决定是否新增
+| 项目 | 语言分榜 | 日榜增星 | 同行累计 Star | 许可范围 |
+| --- | --- | ---: | ---: | --- |
+| [Headroom](https://github.com/headroomlabs-ai/headroom) | Python | +517 | 77,596 | Apache-2.0 |
+| [dsh-context](https://github.com/bowenliang123/dsh-context) | TypeScript | +296 | 3,429 | Apache-2.0 |
+| [GenOffice](https://github.com/genspark-ai/genoffice) | TypeScript | +193 | 10,585 | 主体 Apache-2.0，企业模块另授权 |
+| [LiteLLM](https://github.com/BerriAI/litellm) | Python | +107 | 61,873 | 非 enterprise 部分 MIT，企业目录另授权 |
 
-项目以技能形式接入 Claude Code、Codex 等工具，强调复用已有组件、减少不必要实现，并提供变更 review 与全仓 audit。适合研究如何让代理交付更容易审查的改动。
+增长数据来源：[Python Today](https://github.com/trending/python)、[TypeScript Today](https://github.com/trending/typescript)。
 
-**门槛与风险：** 作者的代码量、成本和时间改善来自特定任务测试，本刊未复现，不能推广成通用保证。Codex 接入涉及生命周期 hooks，应先审阅运行行为及权限；代码更少也不自动意味着更安全。
+### G1｜Headroom：压缩上下文之前，先定义不能丢的信息
 
-依据：[README](https://github.com/DietrichGebert/ponytail/blob/main/README.md)、[MIT 许可证](https://github.com/DietrichGebert/ponytail/blob/main/LICENSE)。
+Headroom 可在工具输出、日志、文件或检索内容进入模型前进行本地压缩，并提供库、代理、Agent wrapper 与 MCP 接入方式；README 说明原文可以保留供按需取回。适合上下文被长日志或 JSON 占满的开发团队。
 
-### G2｜Kronos：金融序列基础模型，不是收益承诺
+**评估边界：** 项目方宣传的节省比例不是本期实测。应比较任务正确率、细节召回、取回原文的开销和总成本，而不只比较压缩前后 token。压缩发生在本地，也不意味着后续模型调用不会发送内容给服务商。
 
-Kronos 将金融 OHLCV 序列离散化后交给自回归 Transformer，提供预测与微调示例，适合离线研究和方法比较。当前 README 列出的 mini、small、base 可获取，**large 尚未开放**，不能说全系列都已开源。
+依据：[项目 README 与许可](https://github.com/headroomlabs-ai/headroom)。本期未安装实测。
 
-**评估边界：** 预测能力不等于可执行、可获利的策略。实验应避免数据泄漏，加入样本外验证，并考虑手续费、滑点与市场变化。本条只介绍研究工具，不提供交易建议；MIT 代码许可也不自动替代各模型权重的许可。
+### G2｜dsh-context：给 DeepSeek Harness 的上下文变化一个视图
 
-依据：[README](https://github.com/shiyu-coder/Kronos/blob/master/README.md)、[MIT 许可证](https://github.com/shiyu-coder/Kronos/blob/master/LICENSE)。
+该插件展示会话 token、估计成本、缓存命中率、上下文组成与演化，以及父子 Agent 网络，适合排查多代理工作中“内容为什么越来越长”“开销集中在哪里”。
 
-### G3｜vLLM：老项目仍在增长，今天可结合 Flint 看服务支持
+**适用边界：** 依赖 DeepSeek Harness 生态，不是所有编码工具都可直接安装的通用插件。成本显示属于估算，不替代真实账单；会话内容与活动可能出现在面板中，录屏或共享截图前需要检查敏感信息。
 
-vLLM 是成熟的开源推理生态项目，提供 PagedAttention、连续批处理、前缀缓存、量化及兼容 OpenAI 的 API 服务接口。本期单列其日榜表现，并非把它当新项目；上文 Flint 的首日支持则是具体新进展。
+依据：[项目 README 与许可](https://github.com/bowenliang123/dsh-context)。本期未安装实测。
 
-**部署边界：** 模型、硬件、量化精度和请求长度共同决定兼容性与性能。引擎可用不代表特定模型组合已经通过自己的生产测试；代码许可也不覆盖模型权重、数据与服务条款。
+### G3｜GenOffice：办公文件保持可编辑，AI 请求的数据去向仍要看清
 
-依据：[README](https://github.com/vllm-project/vllm/blob/main/README.md)、[Apache-2.0 许可证](https://github.com/vllm-project/vllm/blob/main/LICENSE)。
+GenOffice 提供 AI Office 桌面套件，可处理 DOCX、XLSX、PPTX 等格式，并提供 CLI 与 Agent skill，支持自带模型密钥。适合希望编码代理协助处理办公文件，同时保留可编辑产物的用户。
 
-### G4｜ai-memory：跨代理延续上下文，也会扩大信息留存范围
+**隐私与许可：** README 说明文件编辑转换在本地进行，但 AI 请求会发给选定提供方。应先确认发送范围，保留原件，并用实际 Office 软件检查排版、公式与未修改内容。主体采用 Apache-2.0，`ee/` 企业模块另有授权，品牌名称与标识也不随代码许可一并授权；不能笼统写成所有部分都可按 Apache 使用。
 
-项目通过生命周期 hooks 捕获工作上下文，整理成由 Git 管理的 Markdown wiki，再以检索和有长度限制的简报支持跨会话、跨代理交接。README 说明默认不要求调用 LLM，适合经常切换编码工具的开发者。
+依据：[项目 README 与许可说明](https://github.com/genspark-ai/genoffice)。兼容性与保留原始内容的宣传未由本期复现。
 
-**部署与隐私：** 先检查捕获范围、保存内容和同步目的地。README 提醒旧安装及 Docker quick-start 可能在启用认证前无认证运行，不应直接按本地默认配置暴露到网络；一个数据目录也只能由一个服务实例使用。“默认不调用 LLM”不等于内容不会被后续同步或代理读取。
+### G4｜LiteLLM：统一模型入口，也把凭据和日志集中到一起
 
-依据：[README](https://github.com/akitaonrails/ai-memory/blob/main/README.md)、[MIT 许可证](https://github.com/akitaonrails/ai-memory/blob/main/LICENSE)。
+LiteLLM 提供 Python SDK 和 AI Gateway，以统一接口连接多家模型服务，支持费用追踪、负载均衡与 guardrails。适合需要管理多供应商调用和团队开销的项目。
 
-项目文档与许可证查阅：2026-10-22。本期未安装实测；关注度不等于安全性、成熟度或性能证明。
+**部署边界：** 接口统一不代表每家模型的工具调用、缓存或参数语义完全一致，迁移仍需回归测试。网关可能集中处理密钥、请求与日志，应核查访问控制、日志留存和后端路由。非 `enterprise/` 部分为 MIT，企业目录单独授权，代码许可也不覆盖所接模型与服务条款。
+
+依据：[项目 README](https://github.com/BerriAI/litellm)、[许可证原文](https://github.com/BerriAI/litellm/blob/main/LICENSE)。本期未安装实测。
+
+项目文档与许可查阅：2026-10-23。关注度与项目自述不等于独立安全、成熟度或性能证明。
 
 ## 读完之后，值得做的三件事
 
-1. **试用主动 Agent：** 先限定连接应用与执行权限，观察后台额度消耗，再决定是否扩大任务范围。
-2. **维护生产服务：** 使用 PHP 的团队优先核对供应商安全更新；准备试用云模型的团队则先区分私有预览与尚未上线的安全选项。
-3. **评估本地 AI 工具：** 用真实代码任务、硬件内存和测试结果判断，不把厂商短上下文速度、GitHub 热度或激活参数量直接当成部署结论。
+1. **复用 Agent 能力：** 跟踪技能与接口规范的版本变化，但不要因为进入基金会就跳过脚本审查和执行隔离。
+2. **接入真实账号：** 将凭据保护、账号访问和具体动作审批分开；先确认目标集成已开放，再考虑连接。
+3. **评估基础设施与工具：** 用故障恢复时间、任务正确率、真实场景覆盖和总成本衡量效果，不只看 GPU 利用率、压缩比例或 Star。
 
-本期区分研究预览、私有预览、公测、正式补丁与社区线索。未复现厂商性能，未确认个人账号额度变化。上一篇完整正文见 [第 010 期归档](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-21.md)。
+本期区分治理变更、已发布平台、分批推出功能、待上线集成与社区线索。未实测厂商性能，未确认个人账号额度重置。上一篇完整正文见 [第 011 期归档](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-22.md)。
