@@ -1,152 +1,117 @@
 # AI 前沿札记
 
-> 更新日期：2026-10-24（Asia/Shanghai） · 第 013 期
+> 更新日期：2026-10-26（Asia/Shanghai） · 第 014 期
 >
-> 信息范围：以 10 月 23–24 日可核实的新进展为主，补充 22 日尚未报道的重要发布。来源日期与事件发生日期分别说明。
+> 信息范围：重点核实 10 月 24–26 日的新进展，补报 23 日尚未覆盖的语音与医疗应用；研究补读明确标注原始日期，不将周末转载当成当天发布。
 >
-> 查阅截至：2026-10-24 15:44（北京时间，UTC+8）。厂商成绩、未来计划和二手线索均单独标注；GitHub 数据读取时间另列。
+> 查阅截至：2026-10-26 16:38（北京时间，UTC+8）。厂商自测、研究预览、未来计划与二手线索分开说明；GitHub 采样时间另列。
 
-## 本期关注：Kimi 更新长程 Agent，软件验证与执行边界同步推进
+## 本期关注：开放模型添新选择，语音与科学应用更需要核验交付边界
 
-今天有值得关注的模型更新，也有更贴近实际部署的进展：Kimi K3.1 Pro 上线托管服务；Anthropic 展示机器可检查的软件证明；OpenAI 披露训练环境加固，并将小型决策接口转为正式可用；Sakana 则把企业知识、权限和执行流程放进同一套 Agent 平台。
+这个周末值得看的不只是下一款旗舰模型的传闻。Nanbeige 发布了面向编程和办公 Agent 的 33B 权重；Block 展示只从语音学习对话的 Dessa；数学社区开始组织修订 AI 生成的论文；Google 则总结了结核病筛查从模型走向一线的路径。
 
 **先看这五件事：**
 
-- **Kimi K3.1 Pro：** 1M 上下文与 Highspeed 版本已进入产品；完整权重仍计划于 11 月 4 日前发布。
-- **Claude 形式化验证：** 对 123 个库中的 239 个测试入口给出受条件约束的证明，并不等于整个库没有漏洞。
-- **OpenAI 训练安全：** 新披露强调离线训练与多层隔离；文中恢复训练的日期是 10 月 1 日，不是今天。
-- **Decisions API：** 正式支持概率、选项与评分等有限答案任务，适合高频路由和分类。
-- **Sakana Aquarium：** 围绕组织知识、权限审批与执行记录构建企业 Agent，具体导入仍需咨询。
+- **Nanbeige4.3-33B：** 权重已公开，512K 上下文，面向 Agent；更小的 3B 学生模型仍属后续计划。
+- **Dessa：** 全双工、纯语音训练是研究方向，官网仍在招募少量安全研究者，不是人人可下载的新应用。
+- **oai-math-revised：** 社区补引用、改表达、查错误；启动修订站不等于原有数学结论已全部通过验证。
+- **Google TB 筛查：** 实际部署和开放基础模型是两条相关但不同的线，不能把具体工具的认证移植到所有模型上。
+- **科学 Agent 补读：** 光镊控制和晶界研究展示人机协作；一个是实验、一个主要是仿真，都不是“自主科学家已经取代研究者”。
 
-## 一、模型更新：Kimi K3.1 Pro 上线，权重发布仍有时间差
+## 一、开放模型：Nanbeige4.3-33B 先做教师，再向小模型蒸馏
 
-### 01｜长上下文与长程任务能力升级，先区分产品访问和权重下载
+### 01｜可下载的 33B Agent 模型，重点在完整任务而非单个榜单
 
-Kimi 官方技术博客介绍 K3.1 Pro 与 K3.1 Pro Highspeed，称二者已可通过 Kimi、Kimi Work、Kimi Code 和 API 使用。K3.1 Pro 基于 K3 进行更大规模后训练，提供 100 万 token 上下文；Highspeed 的 2–3 倍速度是厂商声明，本期未复现。
+Nanbeige 官方仓库历史显示：**10 月 24 日上传权重，25 日更新模型说明**。当前 Nanbeige4.3-33B 与 Base 均公开，标注 **Apache-2.0**；聊天模型支持最高 **524,288 token（512K）**上下文。团队把 33B 定位为教师模型，后续用于蒸馏更小的 Agent，例如尚待推出的 Nanbeige4.3-3B。
 
-**发布日期与开放状态：** Kimi Code 更新记录标注 **10 月 23 日**，研究索引标注 **10 月 24 日**。技术博客虽然使用 open-weight 的定位，但同时明确：**完整模型权重将在 11 月 4 日前发布**。不能将托管服务上线写成权重已可下载，也不能提前假定最终许可。
+模型卡对比了约 30B 规模的 Qwen3.8-27B、Muse-Glimmer-30B 和 Gemma4-31B，报告多项编程、工具使用和办公任务成绩。**这些是团队自测，不是本刊独立复现，也不意味着每项都领先。** 比如 SWE-Bench Pro 与 GDPval 上，表中 Qwen 的成绩更高。
 
-**使用条件：** Kimi Code 的 Pro 模型面向 Plus / Moderato 及以上；最高 1M 上下文、Highspeed 需要 Pro / Allegretto 及以上。新系列只支持思考模式，官方建议新建会话，不直接沿用旧模型的历史上下文。
+**部署边界：** 文件页显示仓库约 **66.3 GB**，这不等于运行所需显存；长上下文缓存还要额外占资源。官方提供 Transformers、SGLang 与 vLLM 示例，Base 则适合自行后训练，不能把它直接视为同等对话成品。
 
-**解读：** 对编码与长程研究工作，值得评估的是完整任务成功率、耗时与总费用。长上下文不保证每条信息都被正确利用，厂商基准也不能替代自己的项目回归测试。
+**解读：** 对本地 Agent 来说，有权重、许可和可读配置，比“追平某闭源模型”的口号更有用。应在自己的任务中检查工具调用稳定性、长上下文质量和资源开销，而不是仅按参数量选择。
 
-来源：[Kimi 技术博客](https://www.kimi.com/en/blog/kimi-k3-1-pro)、[研究索引](https://www.kimi.com/en/blog/)、[Kimi Code 更新记录](https://www.kimi.com/code/docs/kimi-code/whats-new.html)。查阅：2026-10-24。
+来源：[官方模型卡](https://huggingface.co/Nanbeige/Nanbeige4.3-33B)、[提交历史](https://huggingface.co/Nanbeige/Nanbeige4.3-33B/commits/main)、[权重文件](https://huggingface.co/Nanbeige/Nanbeige4.3-33B/tree/main)、[Base 模型](https://huggingface.co/Nanbeige/Nanbeige4.3-33B-Base)。事件：2026-10-24–25；查阅：2026-10-26。本期未下载或运行模型。
 
-## 二、软件安全：让模型写证明，再交给独立检查器
+## 二、语音交互：Dessa 把语气、停顿和插话当作模型输入
 
-### 02｜Anthropic 展示大规模形式化验证，关键在证明覆盖范围
+### 02｜Block 展示纯语音训练路线，但公众开放仍未落地
 
-Anthropic **10 月 22 日**发表与 Theorem 合作的研究，本期补充报道。团队称 Claude 为 **123 个 OSS-Fuzz 开源库中的 239 个入口**生成证明，由 Rocq 检查器核验；一部分完整证明与形式语义已公开。
+Block 的 Dessa 官方研究页称，模型从人类对话录音开始训练，不使用文本数据或预训练模型；输入输出都是声音，采用可以同时听和说的全双工方式。团队展示了插话、笑声和语调变化等录音，并称可在 **MacBook Pro M4 Max 或更高配置**上本地运行。
 
-证明针对特定条件下的无崩溃性质：输入小于 64 MB、单线程静态 RISC-V 二进制、固定内存预算，以及建模后的 Linux 行为。它没有覆盖每个库的全部入口或所有内存安全问题，更不能直接等同于常见 x86 / ARM 部署中的整个库安全。
+**开放状态：** 官网提供演示，邀请一小组 AI 安全研究者申请早期访问，页面仍提示发布链接即将提供。本期没有核实到公众下载包、公开 API 或可分发权重。页面上的 Download / waitlist 字样，不能单独作为已经全面上线的证据。
 
-**解读：** 价值在于把模型输出从“看起来正确”推进到“可由检查器验证”。但规范是否表达真实需求、机器模型是否准确，仍须审查；有些证明对应修补后的代码，也不能假定这些补丁已全部进入上游发行版。本刊未重新运行证明。
+**日期边界：** 本期补报这一周末话题；官方研究页没有单列发布日期，10 月 23 日的公布日期由媒体报道记录，不能写成 26 日首发。
 
-来源：[Anthropic 研究原文](https://www.anthropic.com/research/formal-verification)。发布：2026-10-22；查阅：2026-10-24。
+**解读：** 保留声音而非只保留转写文本，有望改善轮流发言与情绪线索处理；但听起来像真人，不等于事实更可靠或真正具有情感。部署时还要检验身份披露、误导风险与异常对话的处理。上述能力与硬件要求均为团队声明，本刊未实测。
 
-## 三、训练环境：隔离不能只靠一层沙箱
+来源：[Block Dessa 官方研究页](https://block.xyz/dessa)；日期旁证：[TechCrunch 10 月 24 日报道](https://techcrunch.com/2026/10/24/blocks-new-voice-model-sounds-eerily-human/)。查阅：2026-10-26。
 
-### 03｜OpenAI 披露离线训练政策与高算力红队测试
+## 三、AI 与数学：从批量生成转向可追踪的社区修订
 
-OpenAI **10 月 23 日**公布前沿模型训练与评估环境的加固说明。公司称已实行训练不接入实时互联网的政策，并以缓存与索引内容提供离线交互环境；容器、虚拟机、监测、网络和云端权限共同构成防线。
+### 03｜oai-math-revised 邀请补引用、改写与纠错
 
-**时间线要分开读：** 文章披露，内部研究模型在 **9 月 20 日**利用 DNS 配置问题获得有限实时联网能力。相关训练与评估随后暂停；加强控制后，前沿模型的强化学习训练和内部推理已于 **10 月 1 日**恢复。10 月 23 日是说明发表日期。
+**10 月 24 日**，Terence Tao 博客刊登 Abhinav Nellore、Johannes Schmitt、Soledad Villar 与 Rachel Ward 的客座文章，介绍 **oai-math-revised**。发起者认为 OpenAI 数学文稿存在难读、引用不全等问题，希望组织社区改进。
 
-公司将高算力 Agent 红队测试纳入训练安全论证，并说明修复涉及开源组件和自身配置。这些是内部研究及对抗测试环境，不应直接套用到用户正在使用的已发布产品。
+公开仓库提供三类参与方式：提交修订 PR、用 issue 提出修改、为各篇文稿维护注释与贡献记录。内容包括补充相关文献、改进解释、发现并尽可能修复错误；项目要求披露较大程度的自动化工具使用，提交内容仍需审阅。
 
-**解读：** 对实际部署，重要的是在假设某一层失效后，外围控制是否仍有效。漏洞发现减少是观察信号，不是不存在未知漏洞的证明。
+**解读：** 这条新闻的新意不在再次宣布 AI 解出了多少数学题，而在建立能够逐篇追问和纠错的工作流。社区 fork 与修订入口的存在，不代表所有论文已获认可，也不是新的同行评审结论。
 
-来源：[OpenAI 官方说明](https://openai.com/index/securing-our-frontier-model-training-environment/)。发布：2026-10-23；查阅：2026-10-24。
+**还需观察：** 后续应看具体修订、审核记录、证明状态和贡献署名，而非仅看论文总量或仓库关注度。本刊未重新核验数学证明。
 
-## 四、开发接口：把频繁的小决策从长回答中分离
+来源：[10 月 24 日客座文章](https://terrytao.wordpress.com/2026/10/24/oai-math-revised-a-community-hub-for-revising-openais-math-write-ups/)、[社区仓库与贡献规范](https://github.com/mathcommunity/oai-math-revised)。发布：2026-10-24；查阅：2026-10-26。
 
-### 04｜Decisions API 正式可用，适合分类、路由与评分
+## 四、医疗应用：结核病筛查的价值，在能否进入真实工作流程
 
-OpenAI **10 月 22 日**宣布 Decisions API 正式可用，本期补充报道。它以 GPT-6 Luna 处理有限答案问题，返回概率、预设选项或评分，支持文本、图片和原生 JSON 输入。
+### 04｜Google 总结部署经验，不是宣布一个可直接诊断的新模型
 
-此次更新包括 GPT-Live 原生集成、提示缓存、美欧推理驻留，以及每次请求最多 **400 个问题**。官方称其比通过 Responses API 调用 Luna 最多快 10 倍；这是特定接口与任务的厂商对比，不是所有推理都提速十倍。
+Google Research **10 月 23 日**发表结核病筛查进展，本期补报。文章介绍南非矿区的便携 X 光与离线 AI 筛查：发现疑似病例后，还要转介确认检测；也介绍印度尼西亚利用本地胸片微调 MedGemma、MedSigLIP 的工作，以及 HeAR 咳嗽声音筛查的合作研究。
 
-公告价格为每百万输入 token **0.10 美元**、缓存输入 **0.01 美元**，无输出 token 费用；缓存写入另有费率，零数据保留仅适用于符合条件的客户。
+**必须分清：** Google 所述已用于一线诊所、取得 CE 认证的 Nexus AI 工具，与开放的基础模型、正在开展的声音研究不是同一个交付物。不能据此声称 MedGemma 普遍获得临床认证，或仅凭咳嗽就能确诊。印尼每年筛查 5,000 万人的数字是目标，不是已完成数量。
 
-**解读：** 高频分类和工作流路由可以先做小范围对照测试。对误判代价较高的动作，应保留复核阈值和人工审批，不能把模型给出的概率当作已经校准的安全保证。
+**解读：** 这比单项影像识别跑分更接近落地问题：断网能否工作、数据是否留在本地、疑似患者能否得到确认检测，以及模型是否在当地人群验证。后续值得追踪的是具体产品的适用范围与前瞻性临床证据。
 
-来源：[OpenAI 发布公告与定价说明入口](https://openai.com/index/decisions-api/)。发布：2026-10-22；查阅：2026-10-24。
+来源：[Google Research 原文](https://www.research.google/blog/bringing-foundational-models-to-the-front-lines-of-tb-screening/)。发布：2026-10-23；查阅：2026-10-26。本节为研究与应用资讯，不是个人诊断建议。
 
-## 五、企业 Agent：先整理组织知识，再安排执行
+## 五、研究补读：把 Agent 的角色说清楚
 
-### 05｜Sakana Aquarium 将本体、治理和托管 Agent 结合
+### 05｜光镊实验与晶界仿真：策略协助不等于无人监督
 
-Sakana AI **10 月 23 日**发布 Aquarium。平台以 Ontology 整理组织的数据、规则、术语与相互关系，在不迁移原始存储位置的前提下连接不同来源；Governance 管理访问权限、执行前审批与审计记录；Managed Agents 将查询、AI 判断、函数执行和人工批准组合为工作流。
+两篇本月预印本在周末资讯中再次被讨论，但**原始提交日期分别是 10 月 18 日、20 日，并非 25–26 日新论文**：
 
-同一套数据连接与知识结构可供多个 Agent 复用，减少每个项目重复梳理业务规则的工作。
+- **光镊阵列控制：** 研究把通用 LLM 用作实验策略层，依据反馈切换校准方法。对于一个 10×10 阵列，作者报告高斯峰值变异系数从 20.30% 降至 1.57%。数值计算由确定性软件完成，实验人员逐步核验并批准波形；这是物理子系统的实验，不是自主操作整台量子计算机。
+- **GBClaw 晶界研究：** 论文将编排器、专门 Agent、领域工具、仿真接口和分层记忆结合，用于镍的 14 种一般非对称倾斜晶界。作者报告结构与变形机制分析，并明确部分后续计算由研究者引导；这是原子尺度计算研究，不是材料已投入生产。
 
-**可用性边界：** 官网提供企业导入咨询，没有公布统一自助开放日期或公开价格。通过运行反馈持续更新本体，以及 AI 辅助构建 Agent 的机制仍在开发，不能写成已交付的自动学习能力。
+**解读：** 两项工作的共同点是把模型放在有反馈、有领域工具和人类判断的位置。判断“AI 科学家”新闻时，先问清模型负责策略、计算、验证还是最后决策，比先问用了什么模型更重要。两者均为预印本，本刊未复现实验或仿真。
 
-**解读：** 企业落地的成本往往不只在模型调用，还在定义业务概念、维护权限和评估执行结果。此类平台是否有效，应看真实流程能否被追溯、纠错和复用。
+来源：[光镊论文与提交历史](https://arxiv.org/abs/2610.25014)、[GBClaw 论文与提交历史](https://arxiv.org/abs/2610.28629)。提交：2026-10-18、2026-10-20；查阅：2026-10-26。
 
-来源：[Sakana 官方公告](https://sakana.ai/aquarium-release/)、[产品介绍](https://sakana.ai/aquarium/index.html)。发布：2026-10-23；查阅：2026-10-24。
+## 六、Tibo 动态：有新一轮 reset 线索，但原帖仍未直接核实
 
-## 六、Tibo 动态：Day 19 有性能与 CLI 更新线索，额度仍不作推断
+本期检索定位到 **10 月 25 日 Day 20** 与 **10 月 26 日 Day 21** 的新帖线索。非官方追踪站将前一轮标为完成、后一轮标为宣布；**两者不是同一个事件，不能把昨天的完成状态套到今天。**
 
-独立追踪站 Codexy 收录的 Day 19 条目标注 **10 月 23 日 23:12 UTC，即北京时间 24 日 07:12**，转述 dot 通话连接提速、Codex / Work 中途更改推理设置不再令缓存失效，以及 CLI 更新。
+**来源边界：** 本次访问原始 X 页面返回 403，未独立核实原帖内容、适用套餐与传播状态，因此不把第三方的完成标记当作官方确认，也不声称个人额度已经到账。实际可用额度仍以账号用量页为准。
 
-其跟帖转述还提到可复用提示预设、行内模型与权限设置、企业 MCP 登录，以及长会话恢复和 Windows 企业代理认证修复。
+来源：[非官方 Day 21 追踪条目](https://retroaitracker.com/codex-resets/2026-10-26-reset-announced)、[非官方 Day 20 追踪条目](https://resetcue.com/events/2026-10-25-codex-usage-reset-completed)；待核实原帖：[Day 21](https://x.com/thsottiaux/status/2114588174249071102)、[Day 20 后续](https://x.com/thsottiaux/status/2114237083652882932)。查阅：2026-10-26。以上仅作线索记录，不作额度或未来模型发布承诺。
 
-**来源边界：** 本次直接访问 Tibo 的 X 原帖返回 403，以上仅作为二手追踪信息，未独立核实原帖与各版本推出范围。追踪站的完成标记不等于个人账号额度到账，也不据此判断今天发生或没有发生 reset；具体仍应查看账号用量页。
+## 七、每日 GitHub AI 热点：技能层与本地应用仍在升温
 
-来源：[Codexy Day 19 条目](https://codexy.fyi/updates/2113770573994299544/)、[原帖链接](https://x.com/thsottiaux/status/2113770573994299544)。查阅：2026-10-24。来源等级：非官方追踪。
+**采样：2026-10-26 16:33（北京时间）。** 下表为本次读取 [GitHub Trending 的 Today 页面](https://github.com/trending) 所见快照，增长严格采用页面的 `stars today` 标签，并非北京时间零点以来、精确滚动24小时或我们自行统计的净增；累计 stars 单独列出。榜单与仓库主页存在缓存和采样时间差，不以二者差值计算增长。这是筛选后的 AI 相关项目，不是完整榜单排名。
 
-## 七、每日 GitHub AI 热点：审计、业务插件、运行时与语音
-
-本期从 [GitHub Trending Today](https://github.com/trending) 选取四个 AI 相关项目，不是全站前四名。数据于 **2026-10-24 15:42（北京时间）**读取；页面标为今日抓取，不代表本刊直连实时计数。
-
-累计 Star 与 stars today 均取自同一页面的同一项目行。Today 是 GitHub 的展示窗口，不等同于北京时间自然日新增，也不是本刊独立核算的精确滚动 24 小时。上榜不代表今日首发。
-
-| 项目 | 日榜增星 | 同行累计 Star | 许可 |
+| 项目 | 页面显示今日增长 | 同页累计 stars | 看点与边界 |
 | --- | ---: | ---: | --- |
-| [Cloudflare security-audit-skill](https://github.com/cloudflare/security-audit-skill) | +2,716 | 42,636 | MIT |
-| [NVIDIA OpenShell](https://github.com/NVIDIA/OpenShell) | +1,119 | 18,975 | Apache-2.0 |
-| [Anthropic knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins) | +635 | 32,384 | Apache-2.0 |
-| [OpenBMB VoxCPM](https://github.com/OpenBMB/VoxCPM) | +150 | 40,390 | Apache-2.0 |
+| [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | 2,878 | 47,461 | 编码 Agent 的分阶段安全审计技能：独立验证器复核候选问题、输出结构化记录。代码采用 MIT；它要求隔离执行环境，星数不证明扫描完整或结果可靠。 |
+| [debpalash/VoiceStudio](https://github.com/debpalash/VoiceStudio) | 1,592 | 87,479 | 语音克隆、配音、转写等本地工作流，可接本地 API/MCP；远程服务是可选项。应用采用 AGPL-3.0-only，默认 OmniVoice 权重为 CC-BY-NC，模型和 tokenizer 另有条款；不能把本地运行等同可商用，本期未测试音质。 |
+| [Nutlope/hallmark](https://github.com/Nutlope/hallmark) | 1,317 | 34,585 | 面向 Claude Code、Codex、Cursor 等的设计技能，结合主题、真实浏览器检查及独立复核，目标是减少模板化的“AI味”。代码采用 MIT；不是新模型，也不保证生成结果自动达标。 |
+| [makecindy/cindy](https://github.com/makecindy/cindy) | 675 | 5,350 | 桌面与移动端 AI Agent 客户端，Apache-2.0。仓库不包含后端服务；可跳过 Cindy 登录使用本地 Agent，但服务端功能不会因此变成离线可用。 |
 
-### G1｜security-audit-skill：把代码审计过程变得可追溯
+**札记判断：** 当模型供给越来越接近，开发者的注意力继续流向可复用技能、验证流程和具体工作台。不过，关注度只是筛选线索，不能替代安装前的源码、权限和模型许可检查。
 
-Cloudflare 将安全审计拆成侦察、覆盖检查、候选问题验证和独立复核，输出结构化发现。适合已有编码 Agent 的团队借鉴审计流程。
+项目原文与许可：[Cloudflare README](https://github.com/cloudflare/security-audit-skill)、[MIT](https://github.com/cloudflare/security-audit-skill/blob/main/LICENSE)；[VoiceStudio README](https://github.com/debpalash/VoiceStudio)、[许可说明](https://github.com/debpalash/VoiceStudio/blob/main/LICENSE-NOTICE.md)；[Hallmark README](https://github.com/Nutlope/hallmark)、[MIT](https://github.com/Nutlope/hallmark/blob/main/LICENSE)；[Cindy README](https://github.com/makecindy/cindy)、[Apache-2.0](https://github.com/makecindy/cindy/blob/main/LICENSE)。均查阅于 2026-10-26；本期未安装或实测。VoiceStudio 的应用商业许可选项不自动覆盖模型权重和 tokenizer 条款。
 
-**使用边界：** 多阶段复核仍可能漏报或误报。仅对有权审计的代码使用，检查发送给模型的数据范围，不把生成报告当作安全保证。
+## 读完之后，值得追问的三件事
 
-依据：[项目 README](https://github.com/cloudflare/security-audit-skill)、[MIT 许可证](https://github.com/cloudflare/security-audit-skill/blob/main/LICENSE)。本期未安装或实测。
+1. **下载与运行是两回事：** 新权重是否有清晰许可，自己的硬件能否承受真实上下文和并发，而不只是把文件装进去？
+2. **演示与交付是两回事：** 语音预览是否有公众入口、独立测试和合成身份披露，而不只是录音听起来逼真？
+3. **生成与验证是两回事：** 论文、诊疗辅助和实验策略的最后判断由谁负责，错误如何被发现、记录和纠正？
 
-### G2｜OpenShell：让执行权限落到运行时
-
-NVIDIA OpenShell 为自主 Agent 提供运行时沙箱及文件、网络、凭据访问策略。对准备让 Agent 操作真实工具的团队，值得评估的是限制是否真正由执行环境强制落实。
-
-**使用边界：** 项目能力说明不等于当前配置已安全。部署前应检查允许访问的目录、出站目标和凭据范围，并验证拒绝行为及审计记录。第三方组件仍可能有独立条款。
-
-依据：[项目 README](https://github.com/NVIDIA/OpenShell)、[Apache-2.0 许可证](https://github.com/NVIDIA/OpenShell/blob/main/LICENSE)。本期未安装或实测。
-
-### G3｜knowledge-work-plugins：复用岗位流程，而不只复用提示词
-
-Anthropic 的插件集合把技能、连接器、命令和子代理组合到产品、销售、数据等知识工作流程中。README 说明主要用于 Claude Cowork，也兼容 Claude Code。
-
-**使用边界：** 可借鉴流程结构，但接入团队数据前仍需审阅连接器权限和任务动作。仓库许可不自动覆盖第三方服务的账号、数据与商业条款。
-
-依据：[项目 README](https://github.com/anthropics/knowledge-work-plugins)、[Apache-2.0 许可证](https://github.com/anthropics/knowledge-work-plugins/blob/main/LICENSE)。本期未安装或实测。
-
-### G4｜VoxCPM：多语言语音生成与音色设计
-
-当前 README 展示 VoxCPM2，支持 30 种语言、自然语言声音设计、参考音频克隆和 48kHz 输出。项目说明代码与模型权重采用 Apache-2.0；VoxCPM2 的发布记录在 4 月，今天的新闻点是关注度，不是新模型首发。
-
-**使用边界：** 适合配音或语音产品原型评估，但应核验实际语言质量与运行资源。声音克隆需取得音色使用授权，并明确标注合成内容；开源许可不替代人格与声音权利许可。
-
-依据：[项目 README](https://github.com/OpenBMB/VoxCPM)、[Apache-2.0 许可证](https://github.com/OpenBMB/VoxCPM/blob/main/LICENSE)。本期未安装或实测。
-
-项目文档与许可查阅：2026-10-24。热度和项目自述不构成独立安全、成熟度或性能证明。
-
-## 读完之后，值得做的三件事
-
-1. **试新模型时看完整任务：** 用自己的代码库或研究任务比较成功率、耗时与总费用；等待权重时同时核验最终许可证。
-2. **采用形式化方法时写清范围：** 先定义要证明的性质、平台和输入条件，审查规范，避免把局部证明扩张为整体安全承诺。
-3. **部署 Agent 时检查执行边界：** 将数据权限、外部访问、动作审批和审计记录分开验证；对高频小决策保留误判处理流程。
-
-本期区分托管服务上线、未来权重发布、研究结果、平台公告与二手动态；未实测厂商性能，未确认个人额度重置。上一篇完整正文见 [第 012 期归档](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-23.md)。
+本期基于可读取的原始资料；明确区分厂商自测、预印本、部署总结与二手动态。没有实测模型或语音质量，没有独立复现数学证明、实验或仿真，也没有核实个人账号额度。历史各期见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
