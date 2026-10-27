@@ -1,117 +1,112 @@
 # AI 前沿札记
 
-> 更新日期：2026-10-26（Asia/Shanghai） · 第 014 期
+> 更新日期：2026-10-27（Asia/Shanghai） · 第 015 期
 >
-> 信息范围：重点核实 10 月 24–26 日的新进展，补报 23 日尚未覆盖的语音与医疗应用；研究补读明确标注原始日期，不将周末转载当成当天发布。
+> 信息范围：上期截稿后可核实的 10 月 26 日官方发布，查阅截至 2026-10-27 10:45（北京时间，UTC+8）。原文日期按来源标注，不把美国日期直接当成北京时间；没有精确发布时间的公告不推算发布时刻。
 >
-> 查阅截至：2026-10-26 16:38（北京时间，UTC+8）。厂商自测、研究预览、未来计划与二手线索分开说明；GitHub 采样时间另列。
+> 本期区分产品上线、厂商评测、数据发布、拟议发行与未来项目目标。GitHub 当日快照另列，Tibo 原帖访问限制单独说明。
 
-## 本期关注：开放模型添新选择，语音与科学应用更需要核验交付边界
+## 本期关注：电脑操作模型降价，使用数据与真实交付仍要分开看
 
-这个周末值得看的不只是下一款旗舰模型的传闻。Nanbeige 发布了面向编程和办公 Agent 的 33B 权重；Block 展示只从语音学习对话的 Dessa；数学社区开始组织修订 AI 生成的论文；Google 则总结了结核病筛查从模型走向一线的路径。
+OpenAI 推出 GPT-6.1 Terra，将视觉理解和电脑操作放到更低的标准 API 价格档；同日公开的工作活动数据，则让研究者能追踪消费者到底拿 ChatGPT 做什么。Anthropic 提交上市注册文件，Google 的农业与教育项目也有新公告。本期不把昨日的模型、语音演示和数学修订再包装成新发布。
 
 **先看这五件事：**
 
-- **Nanbeige4.3-33B：** 权重已公开，512K 上下文，面向 Agent；更小的 3B 学生模型仍属后续计划。
-- **Dessa：** 全双工、纯语音训练是研究方向，官网仍在招募少量安全研究者，不是人人可下载的新应用。
-- **oai-math-revised：** 社区补引用、改表达、查错误；启动修订站不等于原有数学结论已全部通过验证。
-- **Google TB 筛查：** 实际部署和开放基础模型是两条相关但不同的线，不能把具体工具的认证移植到所有模型上。
-- **科学 Agent 补读：** 光镊控制和晶界研究展示人机协作；一个是实验、一个主要是仿真，都不是“自主科学家已经取代研究者”。
+- **GPT-6.1 Terra：** 面向 Work、Codex 与 API，标准输入/输出价格为每百万 token 1/5 美元；长上下文和工具调用另有计费条件。
+- **OpenAI Signals：** 新数据覆盖近 100 个国家、165 类工作活动，但不包含企业消息或 Codex 使用，不能直接推出就业替代比例。
+- **Anthropic S-1：** 已提交文件，拟用交易代码 ANT；并非已经上市，也未确定发行数量与价格区间。
+- **农业数字基础设施：** Google.org 支持扩大农业服务网络，100 万农户是 2027 年底目标，不是已兑现覆盖量。
+- **Polar Peaks：** 新 AI 素养课程把数据清理、模型测试和人工监督放进游戏；不是发布新的脑科学研究成果。
 
-## 一、开放模型：Nanbeige4.3-33B 先做教师，再向小模型蒸馏
+## 一、模型与工具：GPT-6.1 Terra 把电脑操作带到更低价格档
 
-### 01｜可下载的 33B Agent 模型，重点在完整任务而非单个榜单
+### 01｜比起“全面超越”，更值得检查的是任务成本与可用入口
 
-Nanbeige 官方仓库历史显示：**10 月 24 日上传权重，25 日更新模型说明**。当前 Nanbeige4.3-33B 与 Base 均公开，标注 **Apache-2.0**；聊天模型支持最高 **524,288 token（512K）**上下文。团队把 33B 定位为教师模型，后续用于蒸馏更小的 Agent，例如尚待推出的 Nanbeige4.3-3B。
+OpenAI **10 月 26 日**发布 GPT-6.1 Terra，定位为视觉推理、电脑操作和写作模型。官方列明：向 **ChatGPT Work 与 Codex 的 Plus、Pro、Enterprise、Edu 用户**提供，开发者可通过 API 使用 `gpt-6.1-terra`。这不是“所有免费用户或普通聊天入口均已开放”的声明。
 
-模型卡对比了约 30B 规模的 Qwen3.8-27B、Muse-Glimmer-30B 和 Gemma4-31B，报告多项编程、工具使用和办公任务成绩。**这些是团队自测，不是本刊独立复现，也不意味着每项都领先。** 比如 SWE-Bench Pro 与 GDPval 上，表中 Qwen 的成绩更高。
+标准 API 价格为每百万 token：**输入 1 美元、缓存输入 0.05 美元、输出 5 美元**。模型页同时列出缓存写入费；输入超过 **272K token** 时，整次请求的输入及缓存费率翻倍、输出费率为标准的 1.5 倍。工具调用可能另计费，所以不能把 token 单价直接当作完成一项任务的总价。
 
-**部署边界：** 文件页显示仓库约 **66.3 GB**，这不等于运行所需显存；长上下文缓存还要额外占资源。官方提供 Transformers、SGLang 与 vLLM 示例，Base 则适合自行后训练，不能把它直接视为同等对话成品。
+官方在 Agents’ Last Exam 上报告：中等推理强度较 GPT-5.6 Terra 提高 15 个百分点，并展示速度与成本优势；Terminal-Bench 4.0 的最高推理强度成绩为 50.3%，对比前代公布的 21.5%。**以上均为 OpenAI 公布的评测，不是本刊复现，也不代表每个办公或编程任务都有同等收益。** 官方仍建议最复杂的编程任务考虑 Sol 或 Astra。
 
-**解读：** 对本地 Agent 来说，有权重、许可和可读配置，比“追平某闭源模型”的口号更有用。应在自己的任务中检查工具调用稳定性、长上下文质量和资源开销，而不是仅按参数量选择。
+**接入边界：** 模型文档明确，工具调用需要 Responses API。它的图像输入与电脑操作能力，不等于原生音视频输入输出能力。选型时应比较同一任务的正确率、总费用、耗时和人工返工，而不是只比每 token 价格。
 
-来源：[官方模型卡](https://huggingface.co/Nanbeige/Nanbeige4.3-33B)、[提交历史](https://huggingface.co/Nanbeige/Nanbeige4.3-33B/commits/main)、[权重文件](https://huggingface.co/Nanbeige/Nanbeige4.3-33B/tree/main)、[Base 模型](https://huggingface.co/Nanbeige/Nanbeige4.3-33B-Base)。事件：2026-10-24–25；查阅：2026-10-26。本期未下载或运行模型。
+来源：[官方发布](https://openai.com/index/introducing-gpt-6-1-terra/)、[模型文档与价格条件](https://developers.openai.com/api/docs/models/gpt-6.1-terra)、[API 更新日志](https://developers.openai.com/api/docs/changelog)。发布：2026-10-26；查阅：2026-10-27。本期未调用模型实测。
 
-## 二、语音交互：Dessa 把语气、停顿和插话当作模型输入
+## 二、AI 与工作：OpenAI 开放更细的使用活动数据
 
-### 02｜Block 展示纯语音训练路线，但公众开放仍未落地
+### 02｜165 类活动能帮助研究采用方式，不能直接测出“替代多少岗位”
 
-Block 的 Dessa 官方研究页称，模型从人类对话录音开始训练，不使用文本数据或预训练模型；输入输出都是声音，采用可以同时听和说的全双工方式。团队展示了插话、笑声和语调变化等录音，并称可在 **MacBook Pro M4 Max 或更高配置**上本地运行。
+OpenAI **10 月 26 日**公布新一批 Signals 数据，将消费者的工作相关消息映射到 **165 类中间工作活动（IWA）**，覆盖近 100 个国家，按季度呈现 **2025 年第一季度至 2026 年第三季度**的变化。分类借用 O*NET 框架，便于与其他职业与经济数据对照。
 
-**开放状态：** 官网提供演示，邀请一小组 AI 安全研究者申请早期访问，页面仍提示发布链接即将提供。本期没有核实到公众下载包、公开 API 或可分发权重。页面上的 Download / waitlist 字样，不能单独作为已经全面上线的证据。
+**样本边界很关键：** 数据来自个人 ChatGPT 套餐的工作相关消息，**不包括企业消息和 Codex 使用**。官方称，识别信息去除后由自动系统分类，再发布聚合统计、隐藏小样本并加入统计噪声；不是向研究者开放用户原始聊天记录。
 
-**日期边界：** 本期补报这一周末话题；官方研究页没有单列发布日期，10 月 23 日的公布日期由媒体报道记录，不能写成 26 日首发。
+**解读：** 这是观察任务分布的新材料，不是工作完成质量、劳动生产率或裁员数量的直接测量。一个任务经常出现在聊天中，可能代表它容易借助 AI，也可能只是用户在反复求助；需要与独立调查、任务结果和就业数据结合，才能讨论因果影响。
 
-**解读：** 保留声音而非只保留转写文本，有望改善轮流发言与情绪线索处理；但听起来像真人，不等于事实更可靠或真正具有情感。部署时还要检验身份披露、误导风险与异常对话的处理。上述能力与硬件要求均为团队声明，本刊未实测。
+来源：[研究公告与方法说明](https://openai.com/index/chatgpt-expanding-world-of-work/)。发布：2026-10-26；查阅：2026-10-27。本期未对原始聚合数据重新计算。
 
-来源：[Block Dessa 官方研究页](https://block.xyz/dessa)；日期旁证：[TechCrunch 10 月 24 日报道](https://techcrunch.com/2026/10/24/blocks-new-voice-model-sounds-eerily-human/)。查阅：2026-10-26。
+## 三、产业动态：Anthropic 提交 S-1，但上市尚未完成
 
-## 三、AI 与数学：从批量生成转向可追踪的社区修订
+### 03｜把“提交注册文件”和“股票已可交易”分开
 
-### 03｜oai-math-revised 邀请补引用、改写与纠错
+Anthropic **10 月 26 日**宣布向美国 SEC 提交 S-1 注册声明，拟发行 A 类普通股，并计划在 Nasdaq Global Select Market 以 **ANT** 为交易代码上市。
 
-**10 月 24 日**，Terence Tao 博客刊登 Abhinav Nellore、Johannes Schmitt、Soledad Villar 与 Rachel Ward 的客座文章，介绍 **oai-math-revised**。发起者认为 OpenAI 数学文稿存在难读、引用不全等问题，希望组织社区改进。
+官方公告明确：**发行股数与价格区间尚未确定，注册声明尚未生效。** 因此本期只报道拟议 IPO 进入公开申报阶段，不写成已经上市、已获批准或融资已完成，也不采用未经逐项核实的估值与募资数字。
 
-公开仓库提供三类参与方式：提交修订 PR、用 issue 提出修改、为各篇文稿维护注释与贡献记录。内容包括补充相关文献、改进解释、发现并尽可能修复错误；项目要求披露较大程度的自动化工具使用，提交内容仍需审阅。
+**解读：** 对 AI 行业观察者来说，后续值得跟踪的是正式披露如何解释收入、算力承诺与风险，而不是把资本市场动作当作模型质量提升的证据。本节不构成投资建议。
 
-**解读：** 这条新闻的新意不在再次宣布 AI 解出了多少数学题，而在建立能够逐篇追问和纠错的工作流。社区 fork 与修订入口的存在，不代表所有论文已获认可，也不是新的同行评审结论。
+来源：[Anthropic 官方公告](https://www.anthropic.com/news/s1-sec)。发布：2026-10-26；查阅：2026-10-27。
 
-**还需观察：** 后续应看具体修订、审核记录、证明状态和贡献署名，而非仅看论文总量或仓库关注度。本刊未重新核验数学证明。
+## 四、实际应用：农业 AI 先解决服务能否连起来
 
-来源：[10 月 24 日客座文章](https://terrytao.wordpress.com/2026/10/24/oai-math-revised-a-community-hub-for-revising-openais-math-write-ups/)、[社区仓库与贡献规范](https://github.com/mathcommunity/oai-math-revised)。发布：2026-10-24；查阅：2026-10-26。
+### 04｜Google.org 支持农业开放网络，落地目标仍在未来
 
-## 四、医疗应用：结核病筛查的价值，在能否进入真实工作流程
+Google.org **10 月 26 日**宣布以 **250 万美元**支持 IFC 与更广泛的世界银行集团，在 AgriConnect 框架下扩大农业数字公共基础设施。公告称，继印度试点后，将在拉丁美洲、东南亚和撒哈拉以南非洲的多个国家建设 AI 支持的 **Open Network for Agriculture（ONA）**。
 
-### 04｜Google 总结部署经验，不是宣布一个可直接诊断的新模型
+网络的用途是连接不同服务提供者，减少农户在孤立应用之间切换，让数字身份、融资、补贴、农产品市场及本地语言语音建议能通过共同基础设施接入。**帮助 100 万农户获得相关服务，是到 2027 年底的共同目标，不是当前已完成的结果。** 公告也没有给出所有国家的完整上线名单。
 
-Google Research **10 月 23 日**发表结核病筛查进展，本期补报。文章介绍南非矿区的便携 X 光与离线 AI 筛查：发现疑似病例后，还要转介确认检测；也介绍印度尼西亚利用本地胸片微调 MedGemma、MedSigLIP 的工作，以及 HeAR 咳嗽声音筛查的合作研究。
+**解读：** 本条的实质不是再加一个聊天框，而是服务互通、语言可及性和分发渠道。后续应追问实际覆盖、农户能否完成服务办理，以及农业建议的本地验证与纠错机制；资助规模本身不能证明增产或增收。
 
-**必须分清：** Google 所述已用于一线诊所、取得 CE 认证的 Nexus AI 工具，与开放的基础模型、正在开展的声音研究不是同一个交付物。不能据此声称 MedGemma 普遍获得临床认证，或仅凭咳嗽就能确诊。印尼每年筛查 5,000 万人的数字是目标，不是已完成数量。
+来源：[Google.org 官方公告](https://blog.google/company-news/outreach-and-initiatives/google-org/digital-public-infrastructure-farmers/)。发布：2026-10-26；查阅：2026-10-27。
 
-**解读：** 这比单项影像识别跑分更接近落地问题：断网能否工作、数据是否留在本地、疑似患者能否得到确认检测，以及模型是否在当地人群验证。后续值得追踪的是具体产品的适用范围与前瞻性临床证据。
+## 五、教育应用：让学生练习检查模型，而不只是使用答案
 
-来源：[Google Research 原文](https://www.research.google/blog/bringing-foundational-models-to-the-front-lines-of-tb-screening/)。发布：2026-10-23；查阅：2026-10-26。本节为研究与应用资讯，不是个人诊断建议。
+### 05｜Polar Peaks 新任务把脑图谱研究转化为 AI 素养练习
 
-## 五、研究补读：把 Agent 的角色说清楚
+Google Research 与 Stanford Accelerator for Learning **10 月 26 日**推出 AI Quests 系列第三个任务 **Polar Peaks**，面向 **11–14 岁**学生，以神经元扫描与映射为情境，练习数据清理、模型测试和人工监督。
 
-### 05｜光镊实验与晶界仿真：策略协助不等于无人监督
+这是受连接组学研究启发的互动课程，**并非当天公布了新的完整人脑图谱，也不是让学生进行临床诊断**。公告还发布教师培训安排：前两个任务的模块已可访问，第三个任务的教师模块计划下个月提供，不能把整套培训写成全部上线。
 
-两篇本月预印本在周末资讯中再次被讨论，但**原始提交日期分别是 10 月 18 日、20 日，并非 25–26 日新论文**：
+**解读：** AI 素养不只包括会写提示词，也包括识别数据问题、检验模型表现和知道何时需要人判断。课程的课堂效果仍需教学评估；官方介绍和累计完成次数不能替代学习成效证据。
 
-- **光镊阵列控制：** 研究把通用 LLM 用作实验策略层，依据反馈切换校准方法。对于一个 10×10 阵列，作者报告高斯峰值变异系数从 20.30% 降至 1.57%。数值计算由确定性软件完成，实验人员逐步核验并批准波形；这是物理子系统的实验，不是自主操作整台量子计算机。
-- **GBClaw 晶界研究：** 论文将编排器、专门 Agent、领域工具、仿真接口和分层记忆结合，用于镍的 14 种一般非对称倾斜晶界。作者报告结构与变形机制分析，并明确部分后续计算由研究者引导；这是原子尺度计算研究，不是材料已投入生产。
+来源：[Google 官方发布](https://blog.google/products-and-platforms/products/education/ai-quests-polar-peaks/)。发布：2026-10-26；查阅：2026-10-27。本期未试玩或评估教学效果。
 
-**解读：** 两项工作的共同点是把模型放在有反馈、有领域工具和人类判断的位置。判断“AI 科学家”新闻时，先问清模型负责策略、计算、验证还是最后决策，比先问用了什么模型更重要。两者均为预印本，本刊未复现实验或仿真。
+## 六、Tibo 动态：Day 22 出现 Terra 线索，不把它写成新一轮 reset
 
-来源：[光镊论文与提交历史](https://arxiv.org/abs/2610.25014)、[GBClaw 论文与提交历史](https://arxiv.org/abs/2610.28629)。提交：2026-10-18、2026-10-20；查阅：2026-10-26。
+非官方追踪站新增 **Day 22** 条目，转录内容谈及 Terra 回归、写作与电脑操作，并将其标为产品改进。追踪站按其标注的“Tibo-time”将该条归为 10 月 26 日，不能直接拿来充当北京时间 27 日的 reset 记录。
 
-## 六、Tibo 动态：有新一轮 reset 线索，但原帖仍未直接核实
+**核验边界：** 本次打开对应 X 原帖返回 403，未直接核实完整原帖及上下文。因此，这里仅记录二手线索；Terra 的发布与价格以上文官方公告为准，不把转录中的使用量倍数扩展为个人账号保证，也不宣称今天已有新 reset 或额度到账。实际额度以账号用量页为准。
 
-本期检索定位到 **10 月 25 日 Day 20** 与 **10 月 26 日 Day 21** 的新帖线索。非官方追踪站将前一轮标为完成、后一轮标为宣布；**两者不是同一个事件，不能把昨天的完成状态套到今天。**
+来源：[非官方追踪页面](https://tiboreset.com/)；待核实原帖：[Day 22](https://x.com/thsottiaux/status/2114800277677092936)。查阅：2026-10-27。
 
-**来源边界：** 本次访问原始 X 页面返回 403，未独立核实原帖内容、适用套餐与传播状态，因此不把第三方的完成标记当作官方确认，也不声称个人额度已经到账。实际可用额度仍以账号用量页为准。
+## 七、每日 GitHub AI 热点：Agent 工作台、设计工具与安装前审查
 
-来源：[非官方 Day 21 追踪条目](https://retroaitracker.com/codex-resets/2026-10-26-reset-announced)、[非官方 Day 20 追踪条目](https://resetcue.com/events/2026-10-25-codex-usage-reset-completed)；待核实原帖：[Day 21](https://x.com/thsottiaux/status/2114588174249071102)、[Day 20 后续](https://x.com/thsottiaux/status/2114237083652882932)。查阅：2026-10-26。以上仅作线索记录，不作额度或未来模型发布承诺。
+**采样：2026-10-27 10:44（北京时间，UTC+8）。** 以下数值来自同一次读取的 [GitHub Trending Today 页面](https://github.com/trending)，保留页面的 `stars today` 口径；它不是我们自行统计的北京时间当日净增，也不是精确滚动 24 小时增量。累计 stars 与增量均取自该页，不与仓库首页混算。这是筛选后的四个 AI 相关项目，不是完整排名。
 
-## 七、每日 GitHub AI 热点：技能层与本地应用仍在升温
-
-**采样：2026-10-26 16:33（北京时间）。** 下表为本次读取 [GitHub Trending 的 Today 页面](https://github.com/trending) 所见快照，增长严格采用页面的 `stars today` 标签，并非北京时间零点以来、精确滚动24小时或我们自行统计的净增；累计 stars 单独列出。榜单与仓库主页存在缓存和采样时间差，不以二者差值计算增长。这是筛选后的 AI 相关项目，不是完整榜单排名。
-
-| 项目 | 页面显示今日增长 | 同页累计 stars | 看点与边界 |
+| 项目 | 页面显示今日增长 | 同页累计 stars | 用途、许可与主要边界 |
 | --- | ---: | ---: | --- |
-| [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | 2,878 | 47,461 | 编码 Agent 的分阶段安全审计技能：独立验证器复核候选问题、输出结构化记录。代码采用 MIT；它要求隔离执行环境，星数不证明扫描完整或结果可靠。 |
-| [debpalash/VoiceStudio](https://github.com/debpalash/VoiceStudio) | 1,592 | 87,479 | 语音克隆、配音、转写等本地工作流，可接本地 API/MCP；远程服务是可选项。应用采用 AGPL-3.0-only，默认 OmniVoice 权重为 CC-BY-NC，模型和 tokenizer 另有条款；不能把本地运行等同可商用，本期未测试音质。 |
-| [Nutlope/hallmark](https://github.com/Nutlope/hallmark) | 1,317 | 34,585 | 面向 Claude Code、Codex、Cursor 等的设计技能，结合主题、真实浏览器检查及独立复核，目标是减少模板化的“AI味”。代码采用 MIT；不是新模型，也不保证生成结果自动达标。 |
-| [makecindy/cindy](https://github.com/makecindy/cindy) | 675 | 5,350 | 桌面与移动端 AI Agent 客户端，Apache-2.0。仓库不包含后端服务；可跳过 Cindy 登录使用本地 Agent，但服务端功能不会因此变成离线可用。 |
+| [JetBrains/thinkrail](https://github.com/JetBrains/thinkrail) | 1,173 | 3,025 | 围绕 pi 编码 Agent 构建的 IDE，用 git worktree 隔离工作区，并保存项目规范与可复用技能。Apache-2.0；完整扩展支持仍在路线图中，不能把 worktree 隔离等同系统安全沙箱。 |
+| [pbakaus/impeccable](https://github.com/pbakaus/impeccable) | 1,506 | 89,310 | 面向编码 Agent 的设计指导，配合命令、浏览器迭代和确定性检测规则。Apache-2.0；已有 CLI 与使用文档，规则检查仍不能代替可用性测试和人工设计判断。 |
+| [NVIDIA/SkillSpector](https://github.com/NVIDIA/SkillSpector) | 214 | 22,291 | 安装 Agent 技能前做静态扫描与可选 LLM 语义检查，提供 CLI/API/MCP 接入。Apache-2.0；默认 LLM 分析会把文件内容发给配置的服务商，静态模式仍可能查询 OSV 依赖数据；它不是运行时沙箱，也不保证没有漏报。 |
+| [nightly-labs/openbot](https://github.com/nightly-labs/openbot) | 176 | 1,543 | 为持续运行的 AI 队友提供桌面工作区、任务队列和浏览器。当前为开发预览，采用 PolyForm Noncommercial 1.0.0，商业使用需另获许可；不能称为可自由商用的开源项目。README 警告 Agent 在首次同意后以全访问、无逐项确认方式运行，需特别审查权限与备份。 |
 
-**札记判断：** 当模型供给越来越接近，开发者的注意力继续流向可复用技能、验证流程和具体工作台。不过，关注度只是筛选线索，不能替代安装前的源码、权限和模型许可检查。
+**札记判断：** 这些项目的共同点是管理模型周边的工作流程，而不是发布新基础模型。最需要读者留意的也恰好在模型之外：工作区隔离到哪一层、扫描数据会去哪里，以及“源码可见”和“可自由商用”是否被混淆。
 
-项目原文与许可：[Cloudflare README](https://github.com/cloudflare/security-audit-skill)、[MIT](https://github.com/cloudflare/security-audit-skill/blob/main/LICENSE)；[VoiceStudio README](https://github.com/debpalash/VoiceStudio)、[许可说明](https://github.com/debpalash/VoiceStudio/blob/main/LICENSE-NOTICE.md)；[Hallmark README](https://github.com/Nutlope/hallmark)、[MIT](https://github.com/Nutlope/hallmark/blob/main/LICENSE)；[Cindy README](https://github.com/makecindy/cindy)、[Apache-2.0](https://github.com/makecindy/cindy/blob/main/LICENSE)。均查阅于 2026-10-26；本期未安装或实测。VoiceStudio 的应用商业许可选项不自动覆盖模型权重和 tokenizer 条款。
+原文与许可证均已查阅：[ThinkRail LICENSE](https://github.com/JetBrains/thinkrail/blob/main/LICENSE)、[Impeccable LICENSE](https://github.com/pbakaus/impeccable/blob/main/LICENSE)、[SkillSpector LICENSE](https://github.com/NVIDIA/SkillSpector/blob/main/LICENSE)、[OpenBot LICENSE](https://github.com/nightly-labs/openbot/blob/main/LICENSE)。OpenBot README 另注明 0.1.11 及更早版本仍为 Apache-2.0，不能把旧版本许可套到当前版本。上述代码许可不自动覆盖外接模型和服务条款；查阅：2026-10-27，本期未安装或实测。stars 只代表关注度，不是质量、安全或采用建议。
 
 ## 读完之后，值得追问的三件事
 
-1. **下载与运行是两回事：** 新权重是否有清晰许可，自己的硬件能否承受真实上下文和并发，而不只是把文件装进去？
-2. **演示与交付是两回事：** 语音预览是否有公众入口、独立测试和合成身份披露，而不只是录音听起来逼真？
-3. **生成与验证是两回事：** 论文、诊疗辅助和实验策略的最后判断由谁负责，错误如何被发现、记录和纠正？
+1. **降价有没有变成真正的节省？** 用相同任务与验收标准，比较总费用、成功率、耗时和返工，而不是仅看 token 单价。
+2. **数据究竟覆盖了谁？** 消费者聊天、企业部署和编码 Agent 是不同样本，使用活动占比不是岗位替代率。
+3. **交付与边界有没有一起说明？** 将拟议上市、未来覆盖目标、待发布培训模块与已可用产品分开；安装 Agent 工具前先查权限、数据外发和许可。
 
-本期基于可读取的原始资料；明确区分厂商自测、预印本、部署总结与二手动态。没有实测模型或语音质量，没有独立复现数学证明、实验或仿真，也没有核实个人账号额度。历史各期见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
+本期基于可读取的官方公告、文档与仓库原文；没有独立复现模型评测、评估课程成效或验证农业覆盖，也没有核实个人账号额度。历史各期见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
