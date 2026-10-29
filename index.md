@@ -1,112 +1,78 @@
 # AI 前沿札记
 
-> 更新日期：2026-10-27（Asia/Shanghai） · 第 015 期
+> 更新日期：2026-10-29（Asia/Shanghai） · 第 016 期
 >
-> 信息范围：上期截稿后可核实的 10 月 26 日官方发布，查阅截至 2026-10-27 10:45（北京时间，UTC+8）。原文日期按来源标注，不把美国日期直接当成北京时间；没有精确发布时间的公告不推算发布时刻。
->
-> 本期区分产品上线、厂商评测、数据发布、拟议发行与未来项目目标。GitHub 当日快照另列，Tibo 原帖访问限制单独说明。
+> 信息范围：上期之后的 10 月 27–28 日官方发布；查阅日期：2026-10-29。发布日按原文标注，GitHub 榜单采样时间另列。
 
-## 本期关注：电脑操作模型降价，使用数据与真实交付仍要分开看
+## 本期关注：AI 开始把一件事接着做下去
 
-OpenAI 推出 GPT-6.1 Terra，将视觉理解和电脑操作放到更低的标准 API 价格档；同日公开的工作活动数据，则让研究者能追踪消费者到底拿 ChatGPT 做什么。Anthropic 提交上市注册文件，Google 的农业与教育项目也有新公告。本期不把昨日的模型、语音演示和数学修订再包装成新发布。
+这两天的更新有一条共同线索：让 AI 在更长的任务里保持连贯。Google 用 Carbon 挑战复杂漏洞修复，用 Genie 4 生成可以实时干预的世界；GitHub 把手机和电脑上的编码任务接成同一段工作。与此同时，应用服务正在进入搜索、聊天和短信界面。
 
-**先看这五件事：**
+对开发者，值得留意的是任务交接和应用接入方式；对普通用户，变化则更直接：少切换几个应用，少重复交代一次背景。
 
-- **GPT-6.1 Terra：** 面向 Work、Codex 与 API，标准输入/输出价格为每百万 token 1/5 美元；长上下文和工具调用另有计费条件。
-- **OpenAI Signals：** 新数据覆盖近 100 个国家、165 类工作活动，但不包含企业消息或 Codex 使用，不能直接推出就业替代比例。
-- **Anthropic S-1：** 已提交文件，拟用交易代码 ANT；并非已经上市，也未确定发行数量与价格区间。
-- **农业数字基础设施：** Google.org 支持扩大农业服务网络，100 万农户是 2027 年底目标，不是已兑现覆盖量。
-- **Polar Peaks：** 新 AI 素养课程把数据清理、模型测试和人工监督放进游戏；不是发布新的脑科学研究成果。
+## 01｜Gemini 4 Carbon：把找漏洞和修补代码放进同一条工作流程
 
-## 一、模型与工具：GPT-6.1 Terra 把电脑操作带到更低价格档
+Google **10 月 28 日**公布 Gemini 4 Carbon，重点是网络安全和需要持续推进的工程任务。官方报告的漏洞发现测试 SEC-bench Pro 成绩为 **88.2%**，漏洞修复测试 CWE-bench 为 **71.0%**；这些成绩来自 Google 公布的评测。
 
-### 01｜比起“全面超越”，更值得检查的是任务成本与可用入口
+更值得关注的是它要解决的问题：大型代码库里的缺陷往往牵涉多个模块，修复时还要追踪根因、尝试方案、检查影响。Google 称，内部团队已观察到 Carbon 连续工作数天，处理这类多步骤问题。对工程团队来说，后续实际试用应重点看它能否给出可审查的修复、跑通回归测试，并减少来回返工。
 
-OpenAI **10 月 26 日**发布 GPT-6.1 Terra，定位为视觉推理、电脑操作和写作模型。官方列明：向 **ChatGPT Work 与 Codex 的 Plus、Pro、Enterprise、Edu 用户**提供，开发者可通过 API 使用 `gpt-6.1-terra`。这不是“所有免费用户或普通聊天入口均已开放”的声明。
+**开放安排：** 本周先向部分网络防御人员开放，再通过 Fairwind 计划逐步扩大到可信伙伴；普通开发者和消费者的开放时间尚待公布。
 
-标准 API 价格为每百万 token：**输入 1 美元、缓存输入 0.05 美元、输出 5 美元**。模型页同时列出缓存写入费；输入超过 **272K token** 时，整次请求的输入及缓存费率翻倍、输出费率为标准的 1.5 倍。工具调用可能另计费，所以不能把 token 单价直接当作完成一项任务的总价。
+来源：[Google 官方发布](https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/)。发布：10 月 28 日；查阅：10 月 29 日。
 
-官方在 Agents’ Last Exam 上报告：中等推理强度较 GPT-5.6 Terra 提高 15 个百分点，并展示速度与成本优势；Terminal-Bench 4.0 的最高推理强度成绩为 50.3%，对比前代公布的 21.5%。**以上均为 OpenAI 公布的评测，不是本刊复现，也不代表每个办公或编程任务都有同等收益。** 官方仍建议最复杂的编程任务考虑 Sol 或 Astra。
+## 02｜Genie 4：生成的世界可以听见，也可以随时改变
 
-**接入边界：** 模型文档明确，工具调用需要 Responses API。它的图像输入与电脑操作能力，不等于原生音视频输入输出能力。选型时应比较同一任务的正确率、总费用、耗时和人工返工，而不是只比每 token 价格。
+Google DeepMind **10 月 27 日**发布世界模型 Genie 4。它在实时生成场景的同时生成环境声、音乐和人物对话；用户可用键盘控制移动与视角，也能用文字改变天气、加入人物或物体。Gemini 模型参与场景推理，帮助前后发生的事情衔接起来。
 
-来源：[官方发布](https://openai.com/index/introducing-gpt-6-1-terra/)、[模型文档与价格条件](https://developers.openai.com/api/docs/models/gpt-6.1-terra)、[API 更新日志](https://developers.openai.com/api/docs/changelog)。发布：2026-10-26；查阅：2026-10-27。本期未调用模型实测。
+这让创作过程更接近“边探索边修改”：例如先搭建一个场景，再改变其中的条件，观察角色和环境如何响应。对互动叙事、游戏原型和训练环境研究，这是一种值得尝试的制作方式。实际价值将取决于长时间互动后的场景一致性，以及修改是否足够可控。
 
-## 二、AI 与工作：OpenAI 开放更细的使用活动数据
+目前是面向可信测试者的**研究预览**；后续开放将从 Project Genie 的 Google AI Ultra 用户，以及 Gemini API、AI Studio 的早期合作伙伴开始。
 
-### 02｜165 类活动能帮助研究采用方式，不能直接测出“替代多少岗位”
+来源：[DeepMind 官方介绍与演示](https://deepmind.google/blog/genie-4-a-new-generation-of-world-simulation/)。发布：10 月 27 日；查阅：10 月 29 日。
 
-OpenAI **10 月 26 日**公布新一批 Signals 数据，将消费者的工作相关消息映射到 **165 类中间工作活动（IWA）**，覆盖近 100 个国家，按季度呈现 **2025 年第一季度至 2026 年第三季度**的变化。分类借用 O*NET 框架，便于与其他职业与经济数据对照。
+## 03｜GitHub Copilot：手机上开工，回到电脑继续
 
-**样本边界很关键：** 数据来自个人 ChatGPT 套餐的工作相关消息，**不包括企业消息和 Codex 使用**。官方称，识别信息去除后由自动系统分类，再发布聚合统计、隐藏小样本并加入统计噪声；不是向研究者开放用户原始聊天记录。
+GitHub **10 月 28 日**推出连通多个入口的 Copilot 云端体验。用户可以在手机上用语音或截图发起代码修改，再到网页、VS Code、CLI 或 Copilot app 继续处理，保留同一会话与上下文。
 
-**解读：** 这是观察任务分布的新材料，不是工作完成质量、劳动生产率或裁员数量的直接测量。一个任务经常出现在聊天中，可能代表它容易借助 AI，也可能只是用户在反复求助；需要与独立调查、任务结果和就业数据结合，才能讨论因果影响。
+任务默认运行在 GitHub 托管的云沙箱中；沙箱关闭时保存快照，之后可以恢复。对经常在不同设备间切换的人，这意味着发现问题时就能交代任务，回到电脑后直接检查进展。团队已有的权限和连接器管理规则也会沿用到新体验。
 
-来源：[研究公告与方法说明](https://openai.com/index/chatgpt-expanding-world-of-work/)。发布：2026-10-26；查阅：2026-10-27。本期未对原始聚合数据重新计算。
+这项功能已正式发布，正向**付费 Copilot 用户**逐步开放。云沙箱从 **2026 年 11 月**开始计费，可使用套餐所含的 Actions 共享计算额度；团队可以一起规划构建与 Agent 任务的用量。
 
-## 三、产业动态：Anthropic 提交 S-1，但上市尚未完成
+来源：[GitHub 更新日志](https://github.blog/changelog/2026-10-28-work-from-anywhere-with-a-new-connected-copilot-cloud-experience/)。发布：10 月 28 日；查阅：10 月 29 日。
 
-### 03｜把“提交注册文件”和“股票已可交易”分开
+## 04｜Google 连接应用平台：服务商多了一个触达用户的入口
 
-Anthropic **10 月 26 日**宣布向美国 SEC 提交 S-1 注册声明，拟发行 A 类普通股，并计划在 Nasdaq Global Select Market 以 **ANT** 为交易代码上市。
+Google **10 月 28 日**推出 Connected Apps Platform 预览，为应用接入 Gemini 和 Search 提供统一的开发与管理入口。开发者可通过云端 MCP 服务接入，再到 Google Connected Console 注册、测试和提交审核；Android 应用另有基于 AppFunctions 的本地接入路径。
 
-官方公告明确：**发行股数与价格区间尚未确定，注册声明尚未生效。** 因此本期只报道拟议 IPO 进入公开申报阶段，不写成已经上市、已获批准或融资已完成，也不采用未经逐项核实的估值与募资数字。
+云端接入的应用可以选择进入 Search、Gemini 或两者，并查看流量、延迟和错误率。对已有服务的团队，意义在于把查询和办事能力带到用户正在使用的 AI 界面中；用户授权连接账号后，可以在对话里调用这些服务。
 
-**解读：** 对 AI 行业观察者来说，后续值得跟踪的是正式披露如何解释收入、算力承诺与风险，而不是把资本市场动作当作模型质量提升的证据。本节不构成投资建议。
+平台正在分批开放。Google 同时宣布 Adobe、Peloton 等新伙伴已在 Gemini 提供连接应用，Search 端将在未来几周跟进。开发者现在最值得准备的是清晰的工具接口、可靠的授权流程，以及调用失败时的处理方式。
 
-来源：[Anthropic 官方公告](https://www.anthropic.com/news/s1-sec)。发布：2026-10-26；查阅：2026-10-27。
+来源：[Google 官方公告](https://blog.google/innovation-and-ai/technology/developers-tools/connected-apps-one-place/)、[开发文档](https://developers.google.com/connected-apps)。公告发布：10 月 28 日；查阅：10 月 29 日。
 
-## 四、实际应用：农业 AI 先解决服务能否连起来
+## 05｜ChatGPT：通过短信联系 dot，部分订阅用户可领取 API 优惠额度
 
-### 04｜Google.org 支持农业开放网络，落地目标仍在未来
+OpenAI **10 月 28 日**开始向**美国 Pro 用户**推出 dot 短信功能测试。用户可通过 iMessage 或 RCS 联系自己的 dot，沿用 ChatGPT 内的记忆与插件，也能收到任务进展等主动更新。它把联系助手的入口放到了手机已有的消息应用里；通信范围限于用户与自己的 dot。
 
-Google.org **10 月 26 日**宣布以 **250 万美元**支持 IFC 与更广泛的世界银行集团，在 AgriConnect 框架下扩大农业数字公共基础设施。公告称，继印度试点后，将在拉丁美洲、东南亚和撒哈拉以南非洲的多个国家建设 AI 支持的 **Open Network for Agriculture（ONA）**。
+同日，符合条件的 Pro 和 Business 订阅者可以激活 API 优惠额度，用于关联的 API 组织。这为想把个人工作流程做成应用的人提供了试验空间，领取条件和具体额度以账户活动说明为准，API 额度与 ChatGPT 使用额度分开计算。
 
-网络的用途是连接不同服务提供者，减少农户在孤立应用之间切换，让数字身份、融资、补贴、农产品市场及本地语言语音建议能通过共同基础设施接入。**帮助 100 万农户获得相关服务，是到 2027 年底的共同目标，不是当前已完成的结果。** 公告也没有给出所有国家的完整上线名单。
+来源：[ChatGPT 官方更新日志](https://help.openai.com/en/articles/6825453-chatgpt-release-notes)、[API 优惠额度说明](https://help.openai.com/en/articles/20001626-api-credits-benefit-for-eligible-chatgpt-subscriptions)。更新日志发布：10 月 28 日；查阅：10 月 29 日。
 
-**解读：** 本条的实质不是再加一个聊天框，而是服务互通、语言可及性和分发渠道。后续应追问实际覆盖、农户能否完成服务办理，以及农业建议的本地验证与纠错机制；资助规模本身不能证明增产或增收。
+## 每日 GitHub AI 热点
 
-来源：[Google.org 官方公告](https://blog.google/company-news/outreach-and-initiatives/google-org/digital-public-infrastructure-farmers/)。发布：2026-10-26；查阅：2026-10-27。
+**采样：2026-10-29 15:46（北京时间，UTC+8）。** 增量与累计 stars 均来自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily)快照，沿用页面的 `stars today` 口径。
 
-## 五、教育应用：让学生练习检查模型，而不只是使用答案
-
-### 05｜Polar Peaks 新任务把脑图谱研究转化为 AI 素养练习
-
-Google Research 与 Stanford Accelerator for Learning **10 月 26 日**推出 AI Quests 系列第三个任务 **Polar Peaks**，面向 **11–14 岁**学生，以神经元扫描与映射为情境，练习数据清理、模型测试和人工监督。
-
-这是受连接组学研究启发的互动课程，**并非当天公布了新的完整人脑图谱，也不是让学生进行临床诊断**。公告还发布教师培训安排：前两个任务的模块已可访问，第三个任务的教师模块计划下个月提供，不能把整套培训写成全部上线。
-
-**解读：** AI 素养不只包括会写提示词，也包括识别数据问题、检验模型表现和知道何时需要人判断。课程的课堂效果仍需教学评估；官方介绍和累计完成次数不能替代学习成效证据。
-
-来源：[Google 官方发布](https://blog.google/products-and-platforms/products/education/ai-quests-polar-peaks/)。发布：2026-10-26；查阅：2026-10-27。本期未试玩或评估教学效果。
-
-## 六、Tibo 动态：Day 22 出现 Terra 线索，不把它写成新一轮 reset
-
-非官方追踪站新增 **Day 22** 条目，转录内容谈及 Terra 回归、写作与电脑操作，并将其标为产品改进。追踪站按其标注的“Tibo-time”将该条归为 10 月 26 日，不能直接拿来充当北京时间 27 日的 reset 记录。
-
-**核验边界：** 本次打开对应 X 原帖返回 403，未直接核实完整原帖及上下文。因此，这里仅记录二手线索；Terra 的发布与价格以上文官方公告为准，不把转录中的使用量倍数扩展为个人账号保证，也不宣称今天已有新 reset 或额度到账。实际额度以账号用量页为准。
-
-来源：[非官方追踪页面](https://tiboreset.com/)；待核实原帖：[Day 22](https://x.com/thsottiaux/status/2114800277677092936)。查阅：2026-10-27。
-
-## 七、每日 GitHub AI 热点：Agent 工作台、设计工具与安装前审查
-
-**采样：2026-10-27 10:44（北京时间，UTC+8）。** 以下数值来自同一次读取的 [GitHub Trending Today 页面](https://github.com/trending)，保留页面的 `stars today` 口径；它不是我们自行统计的北京时间当日净增，也不是精确滚动 24 小时增量。累计 stars 与增量均取自该页，不与仓库首页混算。这是筛选后的四个 AI 相关项目，不是完整排名。
-
-| 项目 | 页面显示今日增长 | 同页累计 stars | 用途、许可与主要边界 |
+| 项目 | 今日增长 | 同页累计 stars | 用途、许可与使用提醒 |
 | --- | ---: | ---: | --- |
-| [JetBrains/thinkrail](https://github.com/JetBrains/thinkrail) | 1,173 | 3,025 | 围绕 pi 编码 Agent 构建的 IDE，用 git worktree 隔离工作区，并保存项目规范与可复用技能。Apache-2.0；完整扩展支持仍在路线图中，不能把 worktree 隔离等同系统安全沙箱。 |
-| [pbakaus/impeccable](https://github.com/pbakaus/impeccable) | 1,506 | 89,310 | 面向编码 Agent 的设计指导，配合命令、浏览器迭代和确定性检测规则。Apache-2.0；已有 CLI 与使用文档，规则检查仍不能代替可用性测试和人工设计判断。 |
-| [NVIDIA/SkillSpector](https://github.com/NVIDIA/SkillSpector) | 214 | 22,291 | 安装 Agent 技能前做静态扫描与可选 LLM 语义检查，提供 CLI/API/MCP 接入。Apache-2.0；默认 LLM 分析会把文件内容发给配置的服务商，静态模式仍可能查询 OSV 依赖数据；它不是运行时沙箱，也不保证没有漏报。 |
-| [nightly-labs/openbot](https://github.com/nightly-labs/openbot) | 176 | 1,543 | 为持续运行的 AI 队友提供桌面工作区、任务队列和浏览器。当前为开发预览，采用 PolyForm Noncommercial 1.0.0，商业使用需另获许可；不能称为可自由商用的开源项目。README 警告 Agent 在首次同意后以全访问、无逐项确认方式运行，需特别审查权限与备份。 |
+| [HKUDS/DeepTutor](https://github.com/HKUDS/DeepTutor) | 2,371 | 48,675 | 面向自学者的 AI 学习工作台。10 月 28 日发布 v1.7.0，加入模块化安装、块式笔记与带旁白的视频课程。Apache-2.0；启用代码执行时，优先配置 runner 或 bubblewrap 隔离。 |
+| [obra/superpowers](https://github.com/obra/superpowers) | 1,095 | 307,716 | 将需求澄清、计划、测试与代码审查串成编码 Agent 工作流，已有多种工具的安装指南。MIT；自动工作流会影响执行方式与 token 开销，小任务宜先试用。 |
+| [makecindy/cindy](https://github.com/makecindy/cindy) | 728 | 8,345 | 把 Claude Code、Codex 与 Pi 放进跨设备工作台，提供桌面和移动端。客户端为 Apache-2.0；云端伙伴会同步会话、记忆与共享附件，接入前检查数据去向及遥测设置。 |
+| [expo/skills](https://github.com/expo/skills) | 90 | 3,684 | Expo 官方维护的 Agent 技能集，覆盖应用开发、升级、构建与发布，支持插件安装。MIT；EAS 服务涉及计费，实验性迁移技能单独提供。 |
 
-**札记判断：** 这些项目的共同点是管理模型周边的工作流程，而不是发布新基础模型。最需要读者留意的也恰好在模型之外：工作区隔离到哪一层、扫描数据会去哪里，以及“源码可见”和“可自由商用”是否被混淆。
+许可证原文：[DeepTutor](https://github.com/HKUDS/DeepTutor/blob/main/LICENSE)、[Superpowers](https://github.com/obra/superpowers/blob/main/LICENSE)、[Cindy](https://github.com/makecindy/cindy/blob/main/LICENSE)、[Expo Skills](https://github.com/expo/skills/blob/main/LICENSE)。代码许可与外接模型、云服务条款分别适用；stars 用于观察关注度。
 
-原文与许可证均已查阅：[ThinkRail LICENSE](https://github.com/JetBrains/thinkrail/blob/main/LICENSE)、[Impeccable LICENSE](https://github.com/pbakaus/impeccable/blob/main/LICENSE)、[SkillSpector LICENSE](https://github.com/NVIDIA/SkillSpector/blob/main/LICENSE)、[OpenBot LICENSE](https://github.com/nightly-labs/openbot/blob/main/LICENSE)。OpenBot README 另注明 0.1.11 及更早版本仍为 Apache-2.0，不能把旧版本许可套到当前版本。上述代码许可不自动覆盖外接模型和服务条款；查阅：2026-10-27，本期未安装或实测。stars 只代表关注度，不是质量、安全或采用建议。
+## 这一期怎么看
 
-## 读完之后，值得追问的三件事
+本期的变化集中在三个环节：模型能否持续解决复杂问题，任务能否跨设备接续，服务能否在对话里完成。接下来最有价值的观察，是把这些功能放进一件具体工作里，看它省下多少交接时间，又留下多少需要人工检查的步骤。
 
-1. **降价有没有变成真正的节省？** 用相同任务与验收标准，比较总费用、成功率、耗时和返工，而不是仅看 token 单价。
-2. **数据究竟覆盖了谁？** 消费者聊天、企业部署和编码 Agent 是不同样本，使用活动占比不是岗位替代率。
-3. **交付与边界有没有一起说明？** 将拟议上市、未来覆盖目标、待发布培训模块与已可用产品分开；安装 Agent 工具前先查权限、数据外发和许可。
-
-本期基于可读取的官方公告、文档与仓库原文；没有独立复现模型评测、评估课程成效或验证农业覆盖，也没有核实个人账号额度。历史各期见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
+历史各期见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
