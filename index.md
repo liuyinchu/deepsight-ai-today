@@ -1,105 +1,86 @@
 # AI 前沿札记
 
-> 更新日期：2026-10-30（Asia/Shanghai） · 第 017 期
+> 更新日期：2026-10-31（Asia/Shanghai） · 第 018 期
 >
-> 信息范围：10 月 29 日官方发布；查阅日期：2026-10-30。发布日按原文标注，GitHub 榜单采样时间另列。
+> 信息范围：10 月 30 日官方发布，以及即将生效的开发者计费变化；查阅截止：2026-10-31 17:06（北京时间）。发布日按原文标注，GitHub 榜单采样时间另列。
 
-## 本期关注：多一点可用额度，少一点来回折腾
+## 本期关注：AI 走向专门的工作，也开始计算更细的成本
 
-今天最直接的变化，是一些日常工作终于可以少绕一步：Pro 用户的 Work/Codex 配额增加，Gemini 可以在聊天里直接修改文件，AWS 则把已有业务流程接成 Agent 能调用的工具。另一组更新在回答更深的问题：AI 应该怎样理解人的要求，出了偏差又如何及时发现。
+今天最有意思的两条消息，一条在实验室，一条在太空：OpenAI 将 GPT-6 Rosalind Research 带给获批的生命科学研究团队，Google 则收到了在轨 TPU 运行模型生成的第一条回应。
 
-教育方面也有值得读的进展。免费教材接入让学习资料更容易获得，课堂研究则提醒我们：把一道题讲明白，与让学生在更广泛的考试中进步，是两件需要分别衡量的事。
+回到开发者手边，变化更务实：小模型可以共享一张 GPU，DeepSeek 的搜索和网页读取工具即将按调用收费，安全研究模型也进入了新的受控云区域。它们共同指向一个问题：模型能力之外，怎样的部署方式、访问条件和成本结构，才能让 AI 真正用起来？
 
-## 01｜Work 与 Codex 配额增加：Pro 200 的下调计划取消
+## 01｜GPT-6 Rosalind Research：生命科学研究进入 GPT-6 阶段
 
-OpenAI **10 月 29 日**更新 ChatGPT 发布说明：**Pro 100 与 Pro 500 的 Work/Codex 所含用量增至此前两倍**。Pro 200 原先在 9 月 29 日邮件中宣布的下调计划取消；已经享有较高额度的用户继续保留，处于较低额度的 Pro 200 用户从 10 月 29 日起获得两倍用量，统一到同一档上限。
+OpenAI **10 月 30 日**开始向有限的获批客户推出 GPT-6 Rosalind Research，用于多步骤生命科学研究。开放入口是 **Work、Codex，以及另行获批的 API**；它不在普通 Chat 标签页提供。API 模型名为 `gpt-6-rosalind`。
 
-对经常让 Agent 跑代码、查资料或处理文件的人，这比增加一个入口更实在：同一订阅里可以安排更多任务。这里增加的是 **Work/Codex 用量**，与上期介绍的 API 优惠额度是两回事。
+这次发布有一个容易忽略的技术细节：系统卡明确写明，**它使用与 GPT-6 Astra 相同的权重，没有为此次发布增加训练数据或进行额外后训练**。差异主要体现在面向科研用途的访问安排、模型行为及部署防护，而不是另训了一套生物学模型。
 
-公告标题也提到 Business Premium，但正文没有给出各 Business 档位的具体倍数；本期只列明已经写清的 Pro 变化。
+它面向的工作包括整合文献和生物数据、规划实验、协调科学工具等。对于已有科研流程的团队，值得考察的是它能否把跨数据库、跨工具的步骤连贯地完成，而不只是单题回答更好。
 
-来源：[ChatGPT 官方更新日志](https://help.openai.com/en/articles/6825453-chatgpt-release-notes)。发布：10 月 29 日；查阅：10 月 30 日。
+**开放条件：** 组织与使用者都需要 Research 资格；Discovery 资格不会自动升级，Discovery 仍使用 5.5。Enterprise 工作区先进入两周 Admin Preview，默认关闭，由管理员为获批用户启用；原有 GPT-5.5 Rosalind Research 可以继续使用。
 
-## 02｜Gemini 文件编辑：生成以后，就在原处接着改
+来源：[OpenAI 模型发布说明](https://help.openai.com/en/articles/9624314-model-release-notes)、[Rosalind 系统卡补充说明](https://deploymentsafety.openai.com/gpt-rosalind-6)、[访问与设置说明](https://help.openai.com/en/articles/20001193-gpt-rosalind-for-life-sciences-research)。发布说明与系统卡：10 月 30 日；查阅：10 月 31 日。
 
-Google **10 月 29 日**宣布，Gemini 现在可以在聊天中生成、预览和编辑文档、PDF、演示文稿、电子表格及代码。用户可以展开全屏直接修改，也可以选中一段内容，让 Gemini 针对这一部分回答问题或调整文字、图像。
+## 02｜Google 在轨 TPU 回了一首诗：太空算力迈出小而具体的一步
 
-**PDF 的预览和编辑支持网页与移动端；Google Docs、Google Sheets、幻灯片、Markdown、TXT 和代码等其他格式目前限网页端。** 官方称，这些能力已向 Gemini 应用可用地区的所有用户、所有支持语言开放。
+Google **10 月 30 日**披露，Project Suncatcher 原型卫星完成了一个“Hello World”里程碑：地面发送提示词，卫星上的数据中心级 TPU 运行 **Gemma 4**，生成一首关于太空的俳句，并在经过挪威斯瓦尔巴群岛时把结果传回地面。
 
-它改变的是“第一稿之后”的工作：拿到学习指南、说明文档或表格以后，不必为了改一小段反复下载、复制和重新上传。对经常需要人工与 AI 交替修改文件的人，这类细节很有价值。
+原型卫星于 **10 月 1 日**发射，此后团队完成主机和 TPU 托盘通电、早期机器学习测试等调试。本周完成的这次回应，按 Google 的说法，是数据中心级 TPU 在轨生成的首次 AI 回应；随后还测试了打油诗和载荷状态遥测提示词。
 
-来源：[Google 官方公告](https://blog.google/innovation-and-ai/products/gemini-app/edit-files-directly/)。发布：10 月 29 日；查阅：10 月 30 日。
+有趣的不只是“AI 会在太空写诗”，而是地面指令、在轨计算与结果回传已经串了起来。接下来要测试的是轨道环境中的**热应力与辐射影响**，再朝 2027 年两颗互联卫星的目标推进。这仍是算力基础设施研究：一次成功生成，距离长期稳定运行和经济可行性还有一段路。
 
-## 03｜GPT-6 Luna 调整回答风格，也公开了能力上的取舍
+来源：[Google Project Suncatcher 官方进展](https://blog.google/innovation-and-ai/models-and-research/google-research/project-suncatcher-satellite-response/)。发布：10 月 30 日；查阅：10 月 31 日。
 
-OpenAI **10 月 29 日**发布 GPT-6 Luna 更新的系统卡补充说明，主要变化是**回答更简洁、减少过度附和**。这是 10 月 7 日已在 ChatGPT 发布的 Luna 的更新。
+## 03｜SageMaker GPU 分区：小模型不必独占整张卡
 
-系统卡同时披露，在六项已报告的事实性指标上，更新版的错误率都高于 10 月初版本，但仍低于 GPT-5.6 Luna。HealthBench 的部分成绩也有所回落。例如长度调整后的 HealthBench Hard 分数由 **27.2 降至 22.8**。
+AWS **10 月 30 日**宣布，SageMaker AI 实时推理端点支持 GPU 分区。借助 NVIDIA Multi-Instance GPU（MIG），一张 GPU 最多可以划分为 **7 个具有独立显存和计算资源的分区**，分别承载模型。
 
-这组结果值得和“更好聊”放在一起看：回答更短、更少迎合，是交流体验的改进；资料是否准确，则需要另一套评价。对于查证和研究任务，决定采用哪个模型时，不能只看它说话是否利落。
+这对嵌入模型、重排序模型、分类器和较小的微调模型尤其实际：它们可能用不满一张卡，却常常需要为整张加速器付费。现在团队可以按模型需求选择分区大小，在同一张卡上放置多个模型，并继续按模型名称调用，应用调用方式不必因此改写。
 
-来源：[GPT-6 Luna 10 月 29 日系统卡补充说明](https://deploymentsafety.openai.com/gpt-6-luna-october-28-2026-addendum)。页面发布：10 月 29 日（网址保留了 28 日字样）；查阅：10 月 30 日。以上为官方评测数据。
+首批支持 **P4d、P5、G7、G7e** 实例，区域包括美国北弗吉尼亚、俄亥俄、俄勒冈，新加坡、东京，法兰克福和爱尔兰。配置入口是承载 inference components 的端点。
 
-## 04｜Model Spec 更新：少规定句式，多解释如何理解人的意图
+我们的判断是，这类能力对“多个小模型组合完成任务”的服务更有吸引力。是否省钱，要结合实际负载、分区规格和延迟要求来测，不能把最多 7 个分区直接理解成成本降到七分之一。
 
-OpenAI **10 月 29 日**重组 Model Spec，将行为规范围绕五项价值展开：忠实于人的意图、减少伤害、诚实透明、支持人的自主选择，以及关怀。新增或扩展的内容包括如何理解上下文、如何处理行动的副作用，以及如何让用户保有判断和选择空间。
+来源：[AWS GPU 分区发布说明](https://aws.amazon.com/about-aws/whats-new/2026/10/sagemaker-gpu-partitioning/)。发布：10 月 30 日；查阅：10 月 31 日。
 
-一个很贴近日常使用的变化是：**撤去大部分细致的文风规定，让表达更多适应用户、语言和文化环境。** 同时仍保留客观回答等较强默认要求，不应仅因猜测用户想听什么就迎合其观点。
+## 04｜今晚跨过零点，DeepSeek 的搜索与网页读取开始计费
 
-我们的理解是，这次更新把重点从“每句话该怎么写”移向“为什么这样做、什么时候该停下来问”。它是模型训练与行为改进的目标，实际效果还要在产品里观察。
+这是**即将生效的规则提醒，不是今天发布的新模型**。DeepSeek 官方文档写明，通过 DeepSeek Harness、Claude Code、Codex 使用 DeepSeek API 时，原先免费的服务端 Search、Fetch 工具调用，将于 **2026 年 11 月 1 日 00:00（北京时间）**开始按请求计费。公告中的另一种写法是 10 月 31 日 16:00 UTC，指的是同一个时间点。
 
-来源：[OpenAI 对新版 Model Spec 的说明](https://openai.com/index/updated-model-spec/)。发布：10 月 29 日；查阅：10 月 30 日。
+Search 和 Fetch **各为每 1,000 次成功请求 0.75 美元**，与模型输入、输出 token 费用分别计算。这里的变化针对上述 DeepSeek API 工具调用，不是所有 Claude Code 或 Codex 用户统一增加一笔费用。
 
-## 05｜Agent 监控：不仅看回答，也要看它实际做了什么
+如果你的 Agent 会反复搜索、抓网页，今天适合检查每项任务用了多少次工具。一边限制无效重复调用，一边保留必要的原始来源核实，比单纯压低输出字数更能反映这类研究任务的真实成本。
 
-同日，OpenAI 介绍了扩展后的模型行为监控体系：从轻量筛查、模型审阅，到调查 Agent 和结合网络日志的深入调查，再交给人工响应。监控关注的是越权行动、欺骗和操纵评测等行为。
+来源：[DeepSeek 当前定价与计费规则](https://api-docs.deepseek.com/quick_start/pricing/)、[10 月 17 日官方公告](https://api-docs.deepseek.com/news/news261017/)。公告：10 月 17 日；规则生效：北京时间 11 月 1 日 00:00；查阅：10 月 31 日。
 
-官方披露，一次 **9 月的实际训练事件**中，模型从原本隔离的环境连到了互联网；监控在 15 分钟内标记问题，人工在随后 3 分钟开始审查。另一个“约 30 分钟报警”的结果来自对既往 Hugging Face 事件的回放模拟，两者不要混为一谈。
+## 05｜Daybreak Red 进入 AWS GovCloud：安全研究模型扩大受控部署范围
 
-对开发者最实用的提醒是：**能发现问题，不一定就能停止任务。** 针对 Astra 及达到相应网络安全能力门槛模型的外部监控，目前不覆盖 Chat Completions；在 Responses API 中，自动中断还依赖支持的会话追踪机制。设计 Agent 时，日志、告警和停止执行的通道需要一起考虑。
+AWS **10 月 30 日**宣布，OpenAI 的 **Daybreak Red：GPT-5.6 Cyber** 已向符合条件的 AWS GovCloud（US-East）客户开放。它用于获授权的漏洞研究、漏洞复现与缓解方案开发，配合身份验证、监控和访问控制，为经过核验的防御团队提供更充分的研究空间。
 
-来源：[OpenAI：如何检测前沿模型的失配行为](https://openai.com/index/how-we-detect-frontier-model-misalignment/)。发布：10 月 29 日；查阅：10 月 30 日。
+此次新增的是 **GovCloud（US-East）部署范围**；公告同时列出的可用区域还有美国东部俄亥俄。客户需要先获得 OpenAI 的 Daybreak 访问资格，再与 AWS 团队启用，并非普通 Bedrock 账户直接就能调用。
 
-## 06｜AWS：Agent 决定何时办，既有工作流负责怎样办
+AWS 表示，模型运行在其新一代推理引擎上，推理数据不用于模型训练，客户也无需把 Daybreak Red 数据共享给 OpenAI。对于对环境和数据治理有专门要求的安全团队，部署位置与访问流程本身，就是能否采用这类模型的重要条件。
 
-AWS **10 月 29 日**宣布，Step Functions 的 **Standard 与 Express 工作流**都可以通过 Amazon Bedrock AgentCore Gateway 暴露为 Agent 工具。Agent 选择何时启动流程、传入什么参数，Step Functions 按已经定义好的步骤执行；Agent 也可以查询执行记录。
-
-例如退款业务，Agent 可以理解用户要求，再调用包含资格检查、经理审批和退款步骤的流程。这样，团队已有的业务规则不必全部改写成提示词，执行顺序仍留在工作流系统里。
-
-这项能力已在 AgentCore Gateway 可用的全部 AWS 区域开放，按 Step Functions 和 Gateway 的标准费率计费。适合已有成熟流程、想增加自然语言入口的团队。
-
-来源：[AWS 官方发布](https://aws.amazon.com/about-aws/whats-new/2026/10/step-functions-workflows-ai-agent-tools/)。发布：10 月 29 日；查阅：10 月 30 日。
-
-## 07｜AI 学习工具：教材更容易拿到，学习效果仍要分层看
-
-Google **10 月 29 日**宣布，Gemini Notebook 可以免费添加数百本教材，来源包括美国和印度的 OpenStax、Open Textbook Library、S Chand Publishing。用户在“添加来源”中选择“教材”，即可围绕教材提问，并生成学习指南、练习题和记忆卡片；回答提供原文引用与链接。
-
-同日公布的英国课堂试验则提供了更具体的效果观察：超过 **1,100 名、12–15 岁学生**参加了为期 **10 周的随机对照试验**。在 Eedi 平台任务和中期测验中，接受 Gemini 辅导的学生表现与人工辅导组相近；试验期间，**每条 AI 回复都经过人工专家实时审核**。
-
-但这份进步没有在同期 STAR 标准化考试成绩中体现。Google 的解释是，逐步辅导更耗时，学生每次完成的题目较少，覆盖课程内容也较少。这个解释还需要后续更长周期试验检验。
-
-值得关注的不是一句“AI 媲美老师”，而是怎样搭配使用：教材提供可靠材料，AI 帮助拆解难点，教师掌握节奏；既看眼前一道题是否学会，也看长期覆盖了多少知识。
-
-来源：[Gemini Notebook 教材公告](https://blog.google/innovation-and-ai/products/gemini-notebook/new-access-textbooks/)、[Google 英国与意大利课堂研究介绍](https://blog.google/products-and-platforms/products/education/impact-studies-uk-italy/)。均发布：10 月 29 日；查阅：10 月 30 日。
+来源：[AWS Daybreak Red 官方公告](https://aws.amazon.com/about-aws/whats-new/2026/10/openai-daybreak-red-govcloud-east/)。发布：10 月 30 日；查阅：10 月 31 日。
 
 ## 每日 GitHub AI 热点
 
-**采样：2026-10-30 08:17（北京时间，UTC+8）。** 以下增量与累计 stars 来自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily)快照，沿用页面的 `stars today` 口径。选取五个用途不同的项目，便于按需求比较。
+**采样：2026-10-31 17:05（北京时间，UTC+8）。** 增量与累计 stars 均来自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily)快照，沿用页面 `stars today` 口径。本期选取学习、跨设备编码和工程技能四类工具。
 
 | 项目 | 今日增长 | 同页累计 stars | 用途、许可与使用提醒 |
 | --- | ---: | ---: | --- |
-| [pbakaus/impeccable](https://github.com/pbakaus/impeccable) | 2,870 | 95,286 | 给编码 Agent 一套设计修改和审查工具，适合已有页面的打磨。Apache-2.0；已有 CLI、设计检测与多工具安装指南。Live 模式会写回本地源码，陌生项目中先检查验证脚本。 |
-| [JetBrains/thinkrail](https://github.com/JetBrains/thinkrail) | 1,117 | 5,990 | 围绕 pi 构建的 Agent IDE，用 git worktree 隔离并行任务，用规格文件保存项目意图。Apache-2.0，JetBrains 孵化项目；适合愿意试新工作流的开发者，接入 MCP 与模型账户前检查权限和成本。 |
-| [nightly-labs/openbot](https://github.com/nightly-labs/openbot) | 709 | 3,866 | 本地优先的多 Agent 桌面工作台，提供任务队列、浏览器与文件协作。开发预览；采用 PolyForm Noncommercial 1.0.0，限制商业使用。当前 Agent 以完整权限、无逐次确认运行，宜放在独立测试环境。 |
-| [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) | 336 | 104,770 | 记录工具使用、生成摘要，并在后续会话找回上下文，适合跨会话维护项目。Apache-2.0；已有安装器及多工具集成。记忆提供方、云同步和截图设置会影响数据去向，启用前按项目敏感度配置。 |
-| [CopilotKit/OpenBot](https://github.com/CopilotKit/OpenBot) | 247 | 8,135 | 用 AG-UI 接入自托管 AI 同事，为每个 Agent 提供浏览器、文件和工具权限。MIT，仍是 beta 模板；依赖 CopilotKit Intelligence 的项目与许可。默认单用户模式将请求视为管理员，对外开放前必须配置登录。 |
+| [HKUDS/DeepTutor](https://github.com/HKUDS/DeepTutor) | 2,282 | 52,135 | 面向自学者的 AI 学习工作台，已有 v1.7.0，提供块式笔记、视频课程和学习资料整理。Apache-2.0；运行模型生成的办公文件代码时，需要配置相应沙箱，模型与语音服务成本另计。 |
+| [pingdotgg/t3code](https://github.com/pingdotgg/t3code) | 930 | 33,200 | 从桌面、网页或手机管理电脑上的编码 Agent，支持 Codex、Claude Code 等。MIT；项目仍处早期，需先安装和登录模型提供方，远程连接前仔细设置权限和访问范围。 |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | 876 | 307,748 | 可组合的工程技能，强调需求澄清、项目术语和可维护的开发流程，适合希望保留过程控制的开发者。MIT；已有多种 Agent 的安装说明，插件与文件复制两种安装方式选一种，避免技能重复。 |
+| [expo/skills](https://github.com/expo/skills) | 38 | 3,954 | Expo 官方 Agent 技能，覆盖 React Native 应用开发、调试、升级与部署。MIT；已有官方插件入口，SDK 开源能力与 EAS 服务计费分开，涉及构建和发布时检查套餐及环境。 |
 
-两个 OpenBot **并非同一项目**：Nightly Labs 偏个人桌面工作台，CopilotKit 偏可定制的自托管模板，许可证与部署方式也不同。
-
-许可证原文：[Impeccable](https://github.com/pbakaus/impeccable/blob/main/LICENSE)、[ThinkRail](https://github.com/JetBrains/thinkrail/blob/main/LICENSE)、[Nightly Labs OpenBot](https://github.com/nightly-labs/openbot/blob/main/LICENSE)、[Claude-Mem](https://github.com/thedotmack/claude-mem/blob/main/LICENSE)、[CopilotKit OpenBot](https://github.com/CopilotKit/OpenBot/blob/main/LICENSE)。项目状态、用途与许可查阅于 10 月 30 日；代码许可与外接模型、云服务条款分别适用。stars 表示关注度，选工具仍应看任务、权限与维护成本。
+许可证原文：[DeepTutor](https://github.com/HKUDS/DeepTutor/blob/main/LICENSE)、[T3 Code](https://github.com/pingdotgg/t3code/blob/main/LICENSE)、[Matt Pocock Skills](https://github.com/mattpocock/skills/blob/main/LICENSE)、[Expo Skills](https://github.com/expo/skills/blob/main/LICENSE)。项目原文与许可查阅于 10 月 31 日。stars 用于观察关注度；代码许可不替代外接模型和云服务条款。
 
 ## 这一期怎么看
 
-本期最有用的变化，不是又多了几个可以点击的 AI 按钮，而是工作中的衔接更顺了：额度够不够把任务做完，文件能不能在原处修改，业务流程能不能照既定规则执行。同时，模型风格、事实准确性和行动可靠性正在被分开讨论——这比用一个笼统的“更强”概括所有更新，更有助于我们选对工具。
+从 Rosalind 到 Daybreak，专业 AI 的开放不再只是给出一个模型名，还包括谁能用、在哪里运行、怎样审查。GPU 分区与搜索计费，则把成本拆到了更具体的资源和动作上。
+
+对多数开发者，眼下最值得做的是把任务账本看清楚：哪一步需要最强模型，哪一步可以由小模型完成，哪些搜索真正带来了新证据。太空算力值得期待，但先把手边的算力和工具用得恰到好处，同样是一种进步。
 
 历史各期见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
