@@ -1,78 +1,81 @@
 # AI 前沿札记
 
-> 更新日期：2026-11-06（Asia/Shanghai） · 第 019 期
+> 更新日期：2026-11-07（Asia/Shanghai） · 第 020 期
 >
-> 信息范围：11 月 2 日至 11 月 6 日的官方更新；查阅日期：2026-11-06。事件及发布日期按来源标注，GitHub 日榜采样时间另列。
+> 信息范围：11 月 5 日至 11 月 7 日查得的官方公告、研究与项目更新；查阅日期：2026-11-07。发布日期与实验发生时间分列，GitHub 日榜采样时间见下文。
 
-## 本期关注：让 AI 工作更连贯，也更容易接手
+## 本期关注：AI 怎样把一项工作持续做下去
 
-这周值得留意的变化，落在几个很具体的地方：长对话少等一会儿，多任务切换时不丢草稿，生成的图片可以继续编辑，企业能在工具执行前检查数据。它们改变的是每天使用 AI 的过程。
+一项任务做久了，AI 会遇到不少实际问题：哪些经验值得留下，环境变化后要不要改计划，多名 Agent 如何发现彼此的错误，已经生成的素材能否接着修改。
 
-本期先看今天发布的 Codex CLI，再补上本周的图像生成与 Claude 更新。GitHub 热点则继续记录日榜增长，让关注度和项目实际用途一起呈现。
+今天选取的四条进展，分别涉及记忆、长任务评测、视频编辑和服务连接的安全性。它们提供了一些可以直接用来设计试验、检查工作流程的线索。
 
-## 01｜Codex CLI 0.167.0：多任务管理更顺手
+## 01｜Anthropic 拆解 Agent 记忆：保存经验，还要能核对和修正
 
-OpenAI **11 月 6 日**发布 Codex CLI **0.167.0**。终端里可以用 `codex agents --no-daemon` 打开 Agent 控制台，控制台和会话选择器会标记未读结果；会话选择器还支持在已连接的后端间切换，并保留正在写的草稿。支持的终端可以在发送前预览本地图片附件。
+Anthropic **11 月 6 日**发布工程研究《The components of agent memory》，介绍跨会话记忆的几层组织方式：原始记录、记忆笔记、关联知识页，以及每次会话预先载入的少量内容。离线整理会回看原始记录，纠正笔记、合并重复内容，再调整哪些信息值得优先读取。
 
-这次还修复了换模型提供方后已保存聊天的可见性问题。聊天无法继续时，可以阅读原记录，并整理一份可编辑的提示词另开会话。自动压缩上下文也会计入失败响应保留下来的输出，以及缺失用量数据的响应。
+在一项包含约 **35 万份内部文档、25 道问题**的实验中，Anthropic 报告：仅用搜索的评分为 **53%**，搜索结合经过多轮整理的知识页达到 **61%**，每题还减少约 2 万 token。另一些信息集中在单份文档里的任务，建立知识页没有带来明显收益。这些数字来自项目方的特定评测。
 
-**我们的观察：** 同时开几个编码任务后，找到结果、恢复现场往往比再开一个任务更费心。这一版值得先检验会话切换和恢复是否符合自己的工作习惯，再逐步用于长任务。
+**我们的观察：** 做知识库助手时，可以先区分两类信息：随时能从系统读到的当前状态，以及需要从经历中总结的规则和计划。后者更值得长期保存；同时保留来源，才能在流程变化或结论出错后更新它。
 
-来源：[ChatGPT 与 Codex 官方更新记录](https://learn.chatgpt.com/docs/changelog)。发布：11 月 6 日；查阅：11 月 6 日。本期核对的是发布说明，未进行 CLI 实机回归测试。
+来源：[Anthropic：The components of agent memory](https://www.anthropic.com/research/components-of-agent-memory)。发布：2026-11-06；查阅：2026-11-07。
 
-## 02｜GPT-Image-2.6：图片开始有更多可控的交付形式
+## 02｜Project EVE：长时间执行有进步，判断变化与识别异常仍吃力
 
-OpenAI **11 月 4 日**发布 **GPT-Image-2.6 Sunburst 与 Flare**，用于图片生成和编辑。新增能力包括复杂度调节、SVG 和动态 GIF 输出，以及在支持的 2.5、2.6 模型上按标注修改图片。
+Anthropic **11 月 6 日**公布 Project EVE，研究于 **2026 年 4 月至 7 月**开展。在 EVE Online 部分，团队重放游戏市场的历史订单，让 Claude 在模拟器中交易；在 EVE Frontier 部分，则让四个 Agent 在真实游戏里合作完成任务。
 
-官方文档将 Sunburst 定位于细致的视觉工作，Flare 用于快速迭代。2.6 的上述能力通过 Image API 提供；`complexity` 有 low、medium、high 三档，默认 high，控制生成前的规划程度，与渲染质量 `quality` 分开。文档提醒，高复杂度可能增加延迟，也可能带来不想要的改动。
+研究团队称，较新的模型更擅长把买卖价差策略写成程序并持续执行，但当任务改为判断价格走势时，Fable 5 也只在约一半的运行中盈利。四人团队通常能协作，面对研究者安排的内部破坏行为，却很少识别出问题。
 
-**我们的观察：** 对图标、网页插画和轻量动效，能直接交付 SVG 或 GIF，可能减少格式转换的工序。实际选型时，可以用同一份素材比较局部修改的准确性和后续编辑难度；只改一个背景或标题时，未必需要把复杂度开到最高。
+模拟市场不会对 Agent 的行为作出真实反应，游戏中的收益也不能直接套用到现实交易。更有参考价值的是这些实验暴露的工作习惯：策略一旦奏效，Agent 可能长期沿用，对费用或规则变化反应迟缓。
 
-来源：[OpenAI API 更新记录](https://developers.openai.com/api/docs/changelog)、[图像生成文档](https://developers.openai.com/api/docs/guides/image-generation)。发布：11 月 4 日；文档查阅：11 月 6 日。
+**我们的观察：** 评估长期运行的 Agent，可以主动插入规则变更、过期信息和同伴出错等情形，观察它何时发现异常、如何调整。任务运行了多久之外，也值得记录它重新检查假设的频率。
 
-## 03｜Claude message threads：长对话只传新增消息
+来源：[Anthropic：Project EVE](https://www.anthropic.com/research/project-eve-claude-plays-mmorpgs)。发布：2026-11-06；实验期：2026 年 4 月至 7 月；查阅：2026-11-07。
 
-Anthropic **11 月 2 日**将 **message threads** 带入公开测试。首个请求发送完整对话，后续通过线程参数和前一个响应 ID 只提交新增消息，减少长会话重复上传历史的时间。
+## 03｜Gemini Omni 1.2 Flash：15 秒视频与多轮修改进入正式服务
 
-Anthropic 称，在已为多数 Claude Code 用户默认启用的情况下，50 万至 100 万 token 请求的首 token 延迟中位数下降约 **35%**。这是官方披露的数据。模型每轮仍读取完整上下文，token 用量保持不变；线程在内存中加密保存，不写入磁盘，最后一次请求后 **5 分钟**过期，届时客户端需重发历史以开启新线程。
+Google **11 月 5 日**发布 **Gemini Omni 1.2 Flash**，并宣布在 Gemini API 与 Gemini for business 正式可用。单次生成和编辑的原生时长从上一版的 10 秒延长至 **15 秒**，可在 3 至 15 秒之间按整秒指定；720p 视频公布价格为 **每秒 0.07 美元**，较 1.1 版下降 30%。
 
-公测覆盖原生 Claude Platform，以及公告列出的 AWS、Microsoft Foundry 和 Anthropic 托管的 Google Cloud 平台入口，沿用标准 token 价格与既有速率限制。
+这一版支持在同一段视频上连续修改背景、光线、产品或画面比例。Google 称参考素材遵循和角色一致性有所改善；生成结果带有 SynthID 水印，快速运动与复杂物理表现仍在改进。Gemini 应用端则面向 **Google AI Ultra 订阅者逐步推出**。
 
-**我们的观察：** 高频往返的编码、截图操作和文档工作更可能受益。接入时最值得测试的是暂停几分钟后的恢复，以及网络中断时的重试，避免把传输优化变成新的会话故障。
+**我们的观察：** 对产品演示与短广告，值得测试的是“改一处，其他地方能否保留”。用同一份素材连续改三轮，记录人物、文字和镜头是否漂移，再比较最终可用片段的成本，会比只看第一条生成效果更接近真实制作需求。
 
-来源：[Anthropic message threads 公告](https://claude.com/resources/articles/message-threads)。发布：11 月 2 日；查阅：11 月 6 日。
+来源：[Google 发布公告](https://blog.google/innovation-and-ai/technology/developers-tools/introducing-gemini-omni-1-2-flash/)、[DeepMind 模型卡](https://deepmind.google/models/model-cards/gemini-omni-1-2-flash/)。发布：2026-11-05；查阅：2026-11-07。
 
-## 04｜Claude Enterprise：把安全检查放到工具执行之前
+## 04｜OpenAI 与 Hacktron 合作，重点检查服务之间的连接
 
-Anthropic **11 月 5 日**公布企业安全与管理更新。**Inference hooks 已正式可用**，包括检查提示词的 prompt hooks，以及在工具执行前检查调用的 pre-tool-call hooks，可接入企业现有的数据安全工具和策略。
+OpenAI **11 月 6 日**宣布与安全研究团队 Hacktron 合作，共同选择高优先级区域开展测试，重点关注 OpenAI 系统与第三方服务的交互，并通过 Daybreak Red 扩大 Hacktron 对前沿模型的访问。
 
-安全中心与集中管理仍在 beta：前者把配置和建议集中展示，后者统一管理公司下多个组织的身份与访问设置。管理员通过 API 注销成员、自己管理 IP 白名单等能力也处于 beta。
+公告介绍，Hacktron 使用 AI Agent 做代码审查、渗透测试和红队研究。这次合作公布的是测试安排，尚未给出新一轮发现或修复的数量。
 
-一个实用细节是，注销成员会结束其设备和浏览器登录会话，但**不会撤销 API key，也不会停止已运行的云会话或定时任务**。企业做离职或风险处置时，需要分别检查这些入口。
+**我们的观察：** 当 Agent 串起邮箱、代码仓库和云服务，审计也要沿着数据和权限的流向检查：来源是否可信、权限如何传递、输出最终进入哪里。对正在接入工具的团队，先画清这些连接，比单独检查每个工具更容易发现遗漏。
 
-**我们的观察：** AI 一旦能读文件、运行命令，管理重点就延伸到每次工具调用。下一步值得看的是安全检查的延迟、误拦率，以及被拦截任务能否让使用者清楚知道如何继续。
-
-来源：[Anthropic 企业安全更新](https://claude.com/resources/articles/claude-enterprise-security-updates)。发布：11 月 5 日；查阅：11 月 6 日。
+来源：[OpenAI：Partnering with Hacktron](https://openai.com/index/partnering-with-hacktron/)。发布：2026-11-06；查阅：2026-11-07。
 
 ## 每日 GitHub AI 热点
 
-**采样：2026-11-06 22:47:50（Asia/Shanghai，UTC+8）。** 以下增量和累计 stars 来自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily)快照，沿用页面 `stars today` 口径，按所选项目今日新增排序。这四个项目集中在工程技能、安全审计和企业数据语义层。
+**采样：2026-11-07 20:19（Asia/Shanghai，UTC+8）。** 增量与累计 stars 取自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily)页面读取，沿用 `stars today` 口径，按本期所选项目的当日增星排序。日榜展示的是关注度，不是严格滚动 24 小时的全站 AI 项目增长排名。
 
 | 项目 | 今日新增 stars | 同页累计 stars | 用途、许可证与落地判断 |
 | --- | ---: | ---: | --- |
-| [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | 2,524 | 63,057 | 将代码安全审计拆成侦察、覆盖检查、独立验证和报告，适合编码 Agent 使用。MIT；已有 JSON 校验器和测试，运行目标代码须有操作系统级沙箱，一次审计仍可能漏报。 |
-| [mattpocock/skills](https://github.com/mattpocock/skills) | 2,058 | 316,253 | 将需求澄清、TDD、调试与代码审查整理成可组合技能，适合开发者补齐工程流程。MIT；已有多种 Agent 安装方式，实际效果取决于模型和项目上下文，仍需测试与验收。 |
-| [NVIDIA/auto-ontology](https://github.com/NVIDIA/auto-ontology) | 2,005 | 8,491 | 从企业元数据建立业务语义层，为 Agent 提供指标、表关系和 SQL 来源。Apache-2.0；提供 Docker/Helm、界面和 MCP/API，当前不接受外部贡献；语义定义须人工认证，部署时要隔离后端端口并修改默认密码。 |
-| [google/skills](https://github.com/google/skills) | 532 | 22,670 | Google 产品与云服务的 Agent 技能集，覆盖 RAG、模型部署、GKE、IAM 和排障。Apache-2.0；已有官方目录及多 Agent 插件入口，各技能成熟度不同，部分涉及预览服务；执行云操作前检查项目、权限与费用。 |
+| [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | 2,088 | 64,808 | 为编码 Agent 组织分阶段安全审计、独立复核与结构化报告，适合开发与安全团队。MIT；已有校验器和测试，执行目标代码需要操作系统级沙箱，单次审计仍可能漏报。 |
+| [milind-soni/OpenMausBot](https://github.com/milind-soni/OpenMausBot) | 1,986 | 16,211 | 用聊天界面管理多名 Agent，连接本地 CLI、电脑和外部应用，适合研究个人 Agent 工作流。Apache-2.0；11 月 7 日发布 0.1.146，已有桌面安装包，Ubuntu AppImage 标注 beta。接入真实账号前，应检查文件访问、操作审批和第三方数据流向。 |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | 1,111 | 317,168 | 将需求澄清、TDD、调试与代码审查整理成可组合技能，适合希望保留工程流程控制权的开发者。MIT；提供多种编码 Agent 安装入口，需按项目裁剪，并用自己的测试与验收标准检查效果。 |
+| [google/skills](https://github.com/google/skills) | 449 | 23,057 | Google 产品与云服务的 Agent 技能集，覆盖模型部署、RAG、GKE、IAM 和排障。Apache-2.0；已有官方技能目录及插件入口，部分能力关联预览服务，执行前检查目标项目、云权限与费用。 |
 
-项目原文与许可证查阅于 11 月 6 日：[Cloudflare README](https://github.com/cloudflare/security-audit-skill/blob/main/README.md) / [MIT](https://github.com/cloudflare/security-audit-skill/blob/main/LICENSE)，[Matt Pocock README](https://github.com/mattpocock/skills/blob/main/README.md) / [MIT](https://github.com/mattpocock/skills/blob/main/LICENSE)，[NVIDIA README](https://github.com/NVIDIA/auto-ontology/blob/main/README.md) / [Apache-2.0](https://github.com/NVIDIA/auto-ontology/blob/main/LICENSE)，[Google README](https://github.com/google/skills/blob/main/README.md) / [Apache-2.0](https://github.com/google/skills/blob/main/LICENSE)。
+项目 README、许可证与状态均查阅于 2026-11-07：
 
-上表是基于文档的编辑判断，未实际运行这些项目。代码与技能材料的许可证、模型权重许可及云服务条款需分别查看，例如 Auto Ontology 的 NVIDIA NIM 模型依赖另有使用条件。日榜用于观察关注度，不能替代质量和安全评估，也不代表严格滚动 24 小时的全站 AI 项目增长排名。
+- Cloudflare：[README](https://github.com/cloudflare/security-audit-skill/blob/main/README.md) · [MIT 许可证](https://github.com/cloudflare/security-audit-skill/blob/main/LICENSE)
+- OpenMausBot：[README](https://github.com/milind-soni/OpenMausBot/blob/main/README.md) · [Apache-2.0 许可证](https://github.com/milind-soni/OpenMausBot/blob/main/LICENSE) · [0.1.146 发布记录](https://github.com/milind-soni/OpenMausBot/releases/tag/v0.1.146)
+- Matt Pocock Skills：[README](https://github.com/mattpocock/skills/blob/main/README.md) · [MIT 许可证](https://github.com/mattpocock/skills/blob/main/LICENSE)
+- Google Skills：[README](https://github.com/google/skills/blob/main/README.md) · [Apache-2.0 许可证](https://github.com/google/skills/blob/main/LICENSE)
+
+以上是依据项目文档作出的编辑判断，本期未实机运行。仓库许可证只覆盖相应代码或技能材料；使用的模型、云电脑和连接服务仍各有条款与费用。选型时，把所需权限、失败恢复和输出验收一并纳入试用。
 
 ## 接下来值得跟进
 
-这几项更新把问题带得更具体了：长对话传得更快以后，断线能否顺畅恢复？图片能输出 SVG 以后，设计师要花多少时间整理结构？企业接上安全检查以后，员工遇到误拦能否继续完成工作？
+本期留下三个具体问题：记忆整理的收益能否抵过额外计算成本？长期任务发现环境变化后，能否及时修正计划？多轮视频编辑保留原有细节的成功率有多高？
 
-我们的判断是，下一阶段的差异会越来越体现在这些衔接处。对个人开发者，先试好任务切换、恢复和成果验收；对团队，则把工具权限和数据检查一起纳入试用。评估 AI 的时候，把一项工作从开始做到交付，比只看单次输出更有参考价值。
+我们的判断是，这些问题都适合用连续任务来检验。保留中间记录，安排一次变化，再看最终交付，能更清楚地判断 AI 在自己的工作里是否可靠。
 
-上一期见[第 018 期：科研 AI、太空算力与工具成本](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-10-31.md)，更多内容见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
+上一期见[第 019 期：让 AI 工作更连贯，也更容易接手](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-11-06.md)，更多内容见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
