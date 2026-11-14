@@ -1,91 +1,76 @@
 # AI 前沿札记
 
-> 更新日期：2026-11-13（Asia/Shanghai） · 第 022 期
+> 更新日期：2026-11-14（Asia/Shanghai） · 第 023 期
 >
-> 信息范围：11 月 11 日至 11 月 13 日查得的官方公告、发布记录与项目文档；查阅日期：2026-11-13。新闻日期沿用来源标注，GitHub 发布时刻另换算为北京时间，日榜采样时间单列。
+> 信息范围：11 月 11 日至 11 月 13 日发布或更新的官方公告与项目记录；查阅日期：2026-11-14。公告日期沿用原文，GitHub 发布时刻另换算为北京时间。
 
-## 本期关注：把任务分给合适的模型，也把验收留下来
+## 本期关注：模型能做什么，部署时又需要什么
 
-这两天的新进展，值得从“怎样分工”来理解：通用模型尝试在同一任务里按难度切换，专用模型负责快速选择，科学模型则把预测细化到不同细胞。开源工具也在补齐可恢复扫描、后台任务通知和本地推理修复。
+ChatGPT Wallet 开始让助手代为结账，但每次付款仍由用户确认。Inkling 2 Small 现在可以下载权重，但自托管所需的显存并不小。AWS Emulator 和 llama.cpp 1.0 则提供了两个更具体的工程检查点：在本地验证应用行为，升级前核对接口兼容性。
 
-更快、更便宜只是起点。真正接入工作时，还要弄清自动决策的边界、结果如何复核，以及出错后能否继续。
+## 01｜ChatGPT Wallet 开始推出，每笔付款都要确认
 
-## 01｜Gemini 4 Hydrogen：日常执行模型与多模型调度一起推出
+OpenAI **11 月 13 日**宣布在 dots 中逐步推出 ChatGPT Wallet。首批面向**年满 18 岁、持符合条件的美国发行卡的美国 ChatGPT Pro 订阅者**。用户先查看商品、总价和选用的卡，再通过面容或指纹等安全验证确认付款。随后，支付网络提供用于付款的代用令牌；按 OpenAI 的说明，真实卡资料不交给助手或商家。
 
-Google **11 月 12 日**发布 Gemini 4 Hydrogen，面向日常编码和 Agent 工作流。它提供 **100 万 token 上下文**与 low、medium、high、xhigh 四档思考，API 价格为每百万输入／输出 token **1.50／7.50 美元**。
+商家仍负责履约、退货和客服。OpenAI 也提醒，商家的风控系统可能拒绝合法的助手交易。公告提到按类别、限额或时间段提前授权是未来方向，**本次推出的流程仍是逐笔确认**。
 
-同期推出的 Antigravity Orchestrator 可在同一会话中动态切换 Carbon、Hydrogen 等模型。Google 自报，在 Terminal-Bench 4.0 上，成功率接近 Carbon，平均配额消耗少 24%、耗时少 19%；这是厂商测试，不是本期独立实测。
+**我们的观察：** 确认页能不能看清总价是一回事，付款后能不能顺利找到订单、处理取消或退货是另一回事。评估代购流程时，两段都值得检查。
 
-开放范围包括 Gemini API、AI Studio、企业及消费产品。Antigravity 的 Hydrogen 面向付费 Google AI Pro／Ultra 用户；Gemini app 免费用户通过**自动选模**获得访问，不能据此推断人人都可手选。
+来源：[OpenAI：Introducing ChatGPT Wallet](https://openai.com/index/introducing-chatgpt-wallet/)。发布：2026-11-13；查阅：2026-11-14。
 
-**我们的观察：** 可以用同一组真实任务比较固定模型与自动调度，记录总费用、用时和人工返工。调度节省的配额，不一定等于相同比例的账单节省。
+## 02｜Inkling 2 Small 开放权重，自托管先算显存
 
-来源：[Google：Introducing Gemini 4 Hydrogen](https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/)。发布：2026-11-12；查阅：2026-11-13。
+Thinking Machines Lab 在 **11 月 12 日**更新公告，将此前通过 Tinker 提供的 Inkling 2 Small 权重开放下载，模型卡标注 **Apache-2.0**。这是总参数 **594B**、每次激活 **17B** 的混合专家模型，可输入图像和文本、输出文本，上下文上限为 **100 万 token**。
 
-## 02｜Gemini Decisions API：把有限选项交给专用决策模型
+官方模型卡给出的自托管门槛是：主推的 NVFP4 检查点至少需要 **500 GB 集群总显存**，MXFP8 检查点至少 **800 GB**。这是项目方给出的硬件要求，本期未实测部署。模型初次公告是 11 月 5 日，本次新增的是权重下载。
 
-Google **11 月 11 日**推出由 Gemini Decision 1 驱动的 Decisions API，可在同一份多模态输入上评估最多 **1,000 个独立问题**，支持是／否、选择与量表评分，返回概率和置信度。输入上限为 **256K token**，价格为每百万输入 token **0.10 美元**，输出不计费。
+**我们的观察：** 17B 激活参数有助于理解每次推理的计算量，不能拿来估算完整权重的显存。做选型时，可以先用现有 API 验证质量，再把硬件、并发量和运维放在一起比较。
 
-它已在 Google AI Studio 的 Gemini API 开放，并有原型开发免费层；Google Cloud 支持仍标为即将推出。官方给出的 **150–250 毫秒端到端延迟**，对应不超过 16K token 等测试条件，不应扩大到所有长度或全部 1,000 个问题。
+来源：[Thinking Machines Lab：11 月 12 日公告更新](https://thinkingmachines.ai/news/inkling-2-small/) · [官方模型卡](https://thinkingmachines.ai/model-card/inkling-2-small/) · [权重仓库](https://huggingface.co/thinkingmachines/Inkling-2-Small)。原公告：2026-11-05；开放权重：2026-11-12；查阅：2026-11-14。
 
-**我们的观察：** 工具选择、模型路由等步骤有机会减少生成长文本的成本。应先用带答案的样本校准阈值，并为低置信度结果保留人工或更强模型复核；分数本身不是正确性的保证。
+## 03｜AWS Emulator：让编码 Agent 先在本地验证云应用
 
-来源：[Google：Gemini Decisions API](https://blog.google/innovation-and-ai/technology/developers-tools/gemini-decisions-api/)。发布：2026-11-11；查阅：2026-11-13。
+AWS **11 月 11 日**正式推出 AWS Emulator，**12 日**在发布公告中补充 GitHub 源码链接。现有 AWS CLI 和 SDK 可以把调用发往本地端点，开发者或编码 Agent 因而能先在本地或 CI 检查应用行为。模拟器本身不额外收费，无需 AWS 账户。源码主体采用 **CC0-1.0**，仓库中 `vendor/` 目录为 **Apache-2.0**。
 
-## 03｜AlphaGenome 2：从组织平均值，走向具体细胞状态
+服务覆盖程度不一；不支持的操作可能返回 501。AWS 明确说明，模拟器不会按真实环境的方式评估 IAM 或资源策略，也不模拟跨账户、跨区域行为。
 
-Google DeepMind **11 月 11 日**发布 AlphaGenome 2。模型在 DNA 序列之外引入细胞类型或状态作为条件，训练数据包括跨 68 种组织、超过 1 亿份单细胞数据，并新增 DNA 甲基化预测。
+**我们的观察：** 适合先在本地跑读写与失败路径，把权限和跨区域行为留给隔离的云测试环境。两层测试各有用处，本地通过不等于可以直接部署。
 
-研究团队报告，在 TenK10K 的 28 类原代免疫细胞评估中，因果变异识别由对比模型的 16% 提升到 30%。这一结果有特定数据集和比较条件，不能概括成所有疾病预测能力翻倍。
+来源：[AWS 发布说明](https://aws.amazon.com/blogs/aws/test-your-applications-against-aws-locally-with-aws-emulator/) · [AWS Emulator 源码](https://github.com/aws/aws-emulator)。发布：2026-11-11；公告更新：2026-11-12；查阅：2026-11-14。
 
-**非商业研究 API 已开放，商业研究仍是私有预览。** 官方明确，模型仅供研究，尚未经过临床或诊断用途验证和批准。
+## 产业快讯｜NVIDIA 启动 CEO 交接
 
-**我们的观察：** 细胞状态更细，有助于研究者优先挑选值得做实验的候选。下一步仍要看新数据和实验验证，尤其是模型没有充分见过的细胞状态。
+NVIDIA 董事会 **11 月 12 日**宣布，黄仁勋辞去总裁、CEO 和董事职务，即时生效。Colette Kress 出任临时 CEO，并继续担任 CFO；Harvey C. Jones 出任董事会主席。董事会已启动永久 CEO 的遴选，并表示预计客户承诺和产品路线图继续执行。这是董事会当时的预期，本期未发现交接公告同时宣布产品路线图调整。
 
-来源：[Google DeepMind：AlphaGenome 2](https://deepmind.google/blog/alphagenome-2-deciphering-how-cells-read-dna-to-better-understand-disease/)。发布：2026-11-11；查阅：2026-11-13。
-
-## 04｜安全快讯：儿童 AI 研究承诺强调公开负面结果
-
-OpenAI 在 **11 月 12 日**公告中表示，已于当周巴黎和平论坛签署儿童安全 AI 承诺宪章，并承诺提供 **200 万美元**支持相关科学研究网络。公告强调研究团队保留结论自主权，负面或无明确结论的结果也应发表。
-
-**我们的观察：** 这是资金与研究治理承诺，还不是已经完成的安全验证。后续值得看公开的研究方法、指标和结果，而不只看参与名单。
-
-来源：[OpenAI：Supporting research on AI and children’s safety](https://openai.com/index/children-first-declaration/)。公告发布：2026-11-12；事件发生于当周，原文未列具体签署日；查阅：2026-11-13。
+来源：[NVIDIA：CEO 交接公告](https://nvidianews.nvidia.com/news/nvidia-announces-ceo-transition)。发布：2026-11-12；查阅：2026-11-14。
 
 ## 每日 GitHub AI 热点
 
-**采样：2026-11-13 09:06（Asia/Shanghai，UTC+8）。** 增量与累计 stars 取自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily)实时页面读取，保留页面 `stars today` 口径，按本期所选项目的当日增星排序。这是日榜关注度采样，不是严格滚动 24 小时的全站 AI 增长排名。
+**采样：2026-11-14 09:03（Asia/Shanghai，UTC+8）。** 两列星数均取自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily)读取，保留页面 `stars today` 口径。下表只列本期选取的四个项目，按页面所示当日增星排序，不是全站 AI 项目排名，也不是精确滚动 24 小时的数据。
 
 | 项目 | 今日新增 stars | 同页累计 stars | 用途、许可证与落地判断 |
 | --- | ---: | ---: | --- |
-| [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | 816 | 116,674 | 面向编码 Agent 的需求、测试、评审与发布工作流，适合希望统一工程验收的团队。MIT；已提供多工具集成。单独安装某项 skill 可能缺少仓库级共享清单，接入前应核对路径，并审阅自动执行步骤的权限。 |
-| [GoogleChrome/modern-web-guidance-src](https://github.com/GoogleChrome/modern-web-guidance-src) | 739 | 2,963 | 为编码 Agent 提供现代 Web 开发指导的源内容与评估仓库，适合前端工具作者。已有指南、CLI 与评估；代码 Apache-2.0，guides 内容 CC-BY-4.0。安装使用分发仓库；默认遥测含工具搜索词，接入前检查隐私设置与目标浏览器兼容。 |
-| [openai/codex-security](https://github.com/openai/codex-security) | 643 | 12,427 | 用 CLI／TypeScript SDK 查找、验证和修复漏洞，适合有授权的代码安全审查。Apache-2.0；已有版本发布。依赖模型服务与运行环境，扫描预算不等于硬上限，自动生成修补仍需测试和人工评审。 |
-| [CopilotKit/OpenBot](https://github.com/CopilotKit/OpenBot) | 298 | 11,616 | 为 Agent 配备浏览器、文件和工具的应用模板，适合工作流原型。模板为 MIT，Intelligence 另需许可；本地免费许可、评估及生产许可应分开核对。默认单用户模式不适合直接暴露给团队或公网。 |
-| [ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp) | 176 | 134,559 | C／C++ 本地大模型推理工具，适合部署与性能实验。MIT；持续提供 nightly 发布。硬件后端与模型兼容需实测，模型权重许可另算；新版本应做固定样本回归再替换。 |
-| [QwenLM/qwen-code](https://github.com/QwenLM/qwen-code) | 151 | 29,813 | 终端编码 Agent，适合代码库维护和后台任务。Apache-2.0；正式版与 1.0 预览支线并行，Web UI／daemon 仍标为实验性。模型服务、凭据和外部通知权限需单独管理，预览变更不能混作正式功能。 |
+| [ZhuLinsen/daily_stock_analysis](https://github.com/ZhuLinsen/daily_stock_analysis) | 256 | 71,602 | 将多市场行情和新闻整理成自选股看板与推送，适合研究信息整理流程。MIT；已提供 Web 工作台与容器部署文档。行情和模型服务的条款需另查，生成分析可能错引数据，不应据此直接交易。 |
+| [alibaba/open-code-review](https://github.com/alibaba/open-code-review) | 215 | 50,626 | 结合规则与模型生成代码评审意见，适合希望在 CI 中做辅助审查的团队。Apache-2.0；已有 CLI、插件和 CI 集成。先检查模型服务会收到哪些代码，再以人工评审判断误报和漏报。 |
+| [backnotprop/plannotator](https://github.com/backnotprop/plannotator) | 108 | 10,460 | 给编码 Agent 的计划、文档和差异添加批注并回传，适合需要审阅交付物的开发者。MIT 或 Apache-2.0 二选一；已有多种 Agent 集成与版本发布。共享批注前检查是否带出内部代码或文档。 |
+| [ChromeDevTools/chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) | 67 | 55,455 | 让编码 Agent 借助 MCP 或 CLI 检查 Chrome、录制性能轨迹与调试页面，适合前端开发者。Apache-2.0；正式支持 Google Chrome 和 Chrome for Testing。工具可读写相连浏览器的数据，建议使用隔离的测试配置。 |
 
-### 版本动态：今天能具体检查什么
+README 与许可证（查阅：2026-11-14）：
 
-- **Codex Security 0.10.0**：发布于 11 月 12 日 10:18（北京时间），加入 Standard 扫描断点恢复、批量／组件扫描共享估算预算，并改善修补受阻时的说明。适合先验证一次中断后能否恢复，再逐步扩大扫描范围。来源：[发布记录](https://github.com/openai/codex-security/releases/tag/npm-v0.10.0)。
-- **Qwen Code v0.27.3**：发布于 11 月 13 日 08:24（北京时间），加入钉钉 Webhook 单向通知、任务通知目的地和 Web Shell 后台任务展示等改进。与 1.0 预览支线区分使用。来源：[发布记录](https://github.com/QwenLM/qwen-code/releases/tag/v0.27.3)。
-- **llama.cpp b12336**：发布于 11 月 13 日 08:34（北京时间），为 nightly／预发布，修复 HunyuanVL 加载时的位置 embedding 类型校验，避免首张图片请求中的缓冲区溢出。仅将此作为相应模型的更新检查点，不称作稳定版发布。来源：[发布记录](https://github.com/ggml-org/llama.cpp/releases/tag/b12336)。
+- Daily Stock Analysis：[README](https://github.com/ZhuLinsen/daily_stock_analysis/blob/main/README.md) · [MIT](https://github.com/ZhuLinsen/daily_stock_analysis/blob/main/LICENSE)
+- OpenCodeReview：[README](https://github.com/alibaba/open-code-review/blob/main/README.md) · [Apache-2.0](https://github.com/alibaba/open-code-review/blob/main/LICENSE)
+- Plannotator：[README](https://github.com/backnotprop/plannotator/blob/main/README.md) · [MIT](https://github.com/backnotprop/plannotator/blob/main/LICENSE-MIT) · [Apache-2.0](https://github.com/backnotprop/plannotator/blob/main/LICENSE-APACHE)
+- Chrome DevTools MCP：[README](https://github.com/ChromeDevTools/chrome-devtools-mcp/blob/main/README.md) · [Apache-2.0](https://github.com/ChromeDevTools/chrome-devtools-mcp/blob/main/LICENSE)
 
-README 与许可证核验说明（查阅：2026-11-13）：
+以上落地判断依据公开文档，本期未安装实测。星数反映关注度，不能代替质量或安全评估；第三方服务、模型权重和依赖的许可应分别核对。
 
-- Agent Skills：[README](https://github.com/addyosmani/agent-skills/blob/main/README.md) · [MIT](https://github.com/addyosmani/agent-skills/blob/main/LICENSE)
-- Modern Web Guidance：[源库 README 与双许可说明](https://github.com/GoogleChrome/modern-web-guidance-src/blob/main/README.md) · [Apache-2.0](https://github.com/GoogleChrome/modern-web-guidance-src/blob/main/LICENSE) · [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) · [安装分发仓库](https://github.com/GoogleChrome/modern-web-guidance)
-- Codex Security：[README](https://github.com/openai/codex-security/blob/main/README.md) · [Apache-2.0](https://github.com/openai/codex-security/blob/main/LICENSE)
-- OpenBot：[README 与 Intelligence 授权说明](https://github.com/CopilotKit/OpenBot/blob/main/README.md) · [模板 MIT](https://github.com/CopilotKit/OpenBot/blob/main/LICENSE)
-- llama.cpp：[README](https://github.com/ggml-org/llama.cpp/blob/master/README.md) · [MIT](https://github.com/ggml-org/llama.cpp/blob/master/LICENSE)
-- Qwen Code：[README](https://github.com/QwenLM/qwen-code/blob/main/README.md) · [Apache-2.0](https://github.com/QwenLM/qwen-code/blob/main/LICENSE)
+### 版本动态
 
-以上用途与风险为依据文档作出的编辑判断，本期未安装或实机运行这些项目。代码许可证、模型权重、模型服务和附加组件许可须分别核对；星数不能替代质量与安全评估。
+- **llama.cpp / ggml 1.0.0**：llama.cpp 于 **11 月 13 日 18:20（北京时间）**发布 1.0.0。项目改用语义化版本，并在 1.0.0 移除已经弃用的接口。版本也新增 Kimi K3.1 Pro 支持与 FP8 KV 缓存。维护集成时，先核对旧接口，再用原有模型和固定输入做一次回归。来源：[发布记录](https://github.com/ggml-org/llama.cpp/releases/tag/v1.0.0) · [维护团队说明](https://huggingface.co/blog/ggml-org/llama-cpp-v1)。
+- **Hugging Face PEFT v0.21.3**：发布于 **11 月 13 日 18:11（北京时间）**。对使用 DTensor 张量并行的模型，保存时只汇集适配器权重，避免 0.21.2 在该场景下汇集整个分片模型。值得在受影响的训练配置上对比检查点保存耗时。来源：[发布记录](https://github.com/huggingface/peft/releases/tag/v0.21.3)。
 
 ## 接下来值得跟进
 
-如果只做一个小试验，可以挑一项现有编码任务，保留固定验收测试，比较自动选模和固定模型的用时、费用与返工量。需要 Agent 长时间执行的团队，则优先试一次任务中断、恢复和通知，确认失败能被及时发现。
+如果正在为编码 Agent 接入测试环境，可以先选一个最常用的云 API，把本地回归和云端权限检查分开。已经集成 llama.cpp 的项目，则先检查迁移成本与当前配置的回归结果，再决定是否升级。
 
-对于科学与儿童安全研究，本期关注的是可复核的证据能否继续积累，避免把研究工具和未来承诺直接当作已经验证的实际效果。
-
-上一期见[第 021 期：更强的模型，怎样进入日常工作](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-11-11.md)，更多内容见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
+上一期见[第 022 期：把任务分给合适的模型，也把验收留下来](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-11-13.md)，更多内容见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
