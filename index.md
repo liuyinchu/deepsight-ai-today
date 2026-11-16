@@ -1,70 +1,64 @@
 # AI 前沿札记
 
-> 更新日期：2026-11-15（Asia/Shanghai） · 第 024 期
+> 更新日期：2026-11-16（Asia/Shanghai） · 第 025 期
 >
-> 信息范围：11 月 13 日至 11 月 14 日发布的官方公告和版本记录；查阅日期：2026-11-15。公告日期沿用原文，GitHub 版本发布时间换算为北京时间。
+> 信息范围：11 月 13 日至 11 月 16 日查得的公告、文档更新和版本记录；查阅日期：2026-11-16。作者公告日期沿用原文，GitHub 发布时间换算为北京时间。
 
-## 本期关注：给助手接上工具后，怎么判断它有没有解决问题？
+## 本期关注：选模型之前，先确定它要跑在哪里
 
-DeepSeek 把搜索、读链接和解析文件接入现有 Flash API，开发者可以少维护几层工具。Ai2 的 XYBench 则提醒我们：即使助手能查资料，它也可能沿着用户提出的错误思路继续走。对正在更换 Copilot 模型的团队来说，这类问题正好可以纳入回归测试。
+华为云为昇腾和鸿蒙开发者提供了新的盘古托管入口；Datasette 则让数据助手能接到团队自己运行的模型。两者表面上都在增加模型选项，但真正需要验证的是：能不能在指定环境中完成任务、数据经过哪里、出问题时能不能换回原有方案。
 
-## 01｜DeepSeek Flash API 增加搜索、文件和链接能力
+## 01｜华为云 MaaS 上线 openPangu-2.1-Pro
 
-DeepSeek **11 月 13 日**开放了原先在自家应用里使用的一批能力。现有的 V4.1-Flash（`deepseek-flash`）在 Messages、Responses 和 Chat Completions 接口中提供联网搜索、链接读取和文件解析。调用方启用相应功能后，工具调用和对话上下文的拼接由 DeepSeek 服务端处理。非思考模式下可检索网页或图片并附引用；思考模式下则可在多步推理中搜索和读网页。搜索、网页抓取、OCR、语音识别和语音合成也有独立接口。
+华为云预告 **11 月 15 日**上线 openPangu-2.1-Pro，同日更新的体验文档已经给出预置服务和 API 调用步骤。目前该体验文档仅列出 **西南-贵阳一** 区域；API 调用需开通服务并使用 API Key，按实际用量计费。华为云把 ArkTS 生成和昇腾算子开发列为升级重点，并称 Agent、代码生成和吞吐有所提升；本期未独立验证这些能力。此次核实的是云服务入口，不据此推定权重下载或生产许可的范围。
 
-这次变化是 **API 新增能力**。扩展工具调用费在 token 费用之外计收。官方也明确要求对外提供应用服务时启用安全校验，且开发者仍需负责内容审核等义务。
+**我们的观察：** 有现成鸿蒙项目的团队，可以把「能否在原工程中通过构建和测试」作为验收项，而不是只比较生成的代码片段。仍在用 2.0 的团队应对照官方停服表核查迁移计划：贵阳一的 2.0 Flash 和 Pro 所列版本将于 **11 月 30 日 00:00（北京时间）**下线。
 
-**我们的观察：** 做资料问答时，可以先用公开文档比较同一批问题的引用准确率和单次请求总成本。打算上传内部文件的团队，还要先核对数据处理条款和可上传的范围。
+来源：[华为云上线预告](https://www.huaweicloud.com/partners/support/news/latestnews/20261106.html)（11 月 6 日） · [模型体验文档](https://support.huaweicloud.com/bestpractice-maas/bestpractice_maas_0021_03.html)（11 月 15 日更新） · [下线公告](https://support.huaweicloud.com/bulletin-maas/bulletin-maas-0002.html)。查阅：2026-11-16。
 
-来源：[DeepSeek 中文公告](https://api-docs.deepseek.com/zh-cn/news/news261113/)。发布：2026-11-13；查阅：2026-11-15。
+## 02｜Datasette Agent 可以接到本地模型
 
-## 02｜Ai2 发布 XYBench，检查助手能否识别问错的方向
+`datasette-llm` 于 **11 月 15 日 07:59（北京时间）**发布 **0.1a11**，新增 OpenAI 兼容端点支持。它是 Datasette 插件共用的模型配置层；作者演示了如何让 Datasette Agent 使用通过 LM Studio、Ollama 或 llama.cpp 提供的本地模型。这意味着要换模型服务时，可以先改端点配置，而不必为每个插件重写一套对接逻辑。这个版本仍是 **alpha**；接口兼容也不等于每个模型都同样擅长调用工具或生成 SQL。
 
-Ai2 **11 月 13 日**公告发布 XYBench。一项典型测试是这样的：有人问怎么换一台吸力更大的吸尘器，但真正要解决的是当前吸力变弱，先检查软管有没有堵塞可能更有用。论文收录 **8,115** 个编程和日常问题，分别衡量回答有没有给出能解决实际问题的建议、有没有把重点放在那里，以及有没有指出原先的误解。
+**我们的观察：** 可以拿一份脱敏 SQLite 副本比较本地与托管模型，分别记录查询是否正确、是否需要人工修正，以及实际出站流量。本地模型端点不保证其他插件、日志或工具调用也完全留在本机。
 
-据作者公布的单轮评测，在 Stack Overflow 子集上，五个受测模型有 **75%–86%** 的回答给出了字面请求的解法，**59%–71%** 给出了实际目标的解法。这里的比例只适用于该子集和测试设置；部分题目是合成的，评分主要由模型完成，并抽样与人工评分对照。数据卡标注 **CC BY-NC-SA 3.0**，下载需通过 Hugging Face 的访问条件。
+来源：[项目发布记录](https://github.com/datasette/datasette-llm/releases/tag/0.1a11) · [作者的运行说明](https://simonwillison.net/2026/Nov/14/datasette-llm/)（原文日期 11 月 14 日）。查阅：2026-11-16。
 
-**我们的观察：** 可以在客服或编程助手的回归题中加入几道「用户已经选错方案」的例子，分别记录助手是否发现问题、是否给出能用的替代办法。也应保留用户意图明确的对照题，看看助手会不会过度纠正。
+## 03｜火山方舟补上 Seedance 2.5 Flash API 档位
 
-来源：[Ai2 公告](https://allenai.org/blog/xybench) · [论文](https://arxiv.org/abs/2609.06842) · [数据卡](https://huggingface.co/datasets/allenai/XYBench-dataset)。论文预印本提交：2026-09-06；发布公告：2026-11-13；查阅：2026-11-15。
+火山方舟 **11 月 15 日**更新系列教程，将 `doubao-seedance-2-5-flash-261115` 列入视频生成 API。Flash 支持 **480p 和 720p（8 bit）**，不提供同系列旗舰档的 1080p。这里的新进展是 **Flash 档的 API**，不是 Seedance 2.5 系列首次发布，后者的官方介绍发表于 7 月 31 日。
 
-## 03｜GitHub Copilot 公布 12 月换模计划
+**我们的观察：** 做短片的团队可以用相同提示和参考素材，比较两个档位产出一条可用样片需要重试多少次。低分辨率能否满足分镜和预览，与最终交付是否用同一个档位，是两个问题。
 
-GitHub **11 月 13 日**宣布 Gemini 4 Hydrogen 在 Copilot 正式可用，向 Pro、Pro+、Max、Business 和 Enterprise **逐步推出**。Business 和 Enterprise 的管理员可以控制模型访问。GitHub 同日预告，Gemini 3.8 Flash 和 Gemini 4 Argon 等模型将于 **12 月 14 日**在 Copilot 停用，分别推荐替换为 Hydrogen 和 Carbon。这里新增的是 Copilot 的使用入口和停用时间表；Hydrogen 模型本身已在[第 022 期](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-11-13.md)介绍。
+来源：[火山方舟系列教程](https://docs.volcengine.com/docs/ark/seedance-2-5?lang=zh)（11 月 15 日更新） · [字节跳动 Seed 首发说明](https://seed.bytedance.com/en/blog/one-take-creation-flexible-referencing-introducing-seedance-2-5)（7 月 31 日）。查阅：2026-11-16。
 
-**我们的观察：** 如果团队的工作流固定了模型，先检查管理员策略，再拿同一批任务比较完成率、耗时和费用。建议把多步操作中需要人工确认的节点也列入验收。
+## 补看｜Haru-4B 的 65 毫秒测了什么？
 
-来源：[Hydrogen 上线公告](https://github.blog/changelog/2026-11-13-gemini-4-hydrogen-in-github-copilot/) · [12 月停用清单与例外](https://github.blog/changelog/2026-11-13-upcoming-deprecation-of-selected-github-copilot-models-in-december/)。发布：2026-11-13；查阅：2026-11-15。
+higurashi **11 月 13 日**介绍了能同时听和说的研究用语音基础模型 Haru-4B，并公开权重与推理代码。作者报告约 **65 毫秒的中位延迟**：M1 Max、int8、优化过的原生 Swift/Metal 实现、有线麦克风和耳机；数字**不含音频分帧**，后者还可能增加最多约 **133 毫秒**。这不是从人说完一句话到助手答完的时间，也不是浏览器、蓝牙设备或云端服务的实测。做语音原型时，建议另外测量用户开始插话到系统停止播放的时间，并确认参考人声的使用授权。
+
+来源：[作者技术说明](https://blog.higurashi.ai/melte/haru4b/)（11 月 13 日） · [模型卡](https://huggingface.co/higurashi-ai/Haru-4B)（权重 Apache-2.0） · [推理代码](https://github.com/higurashi-ai/Haru)。查阅：2026-11-16。
 
 ## 每日 GitHub AI 热点
 
-**采样：2026-11-15 09:03（Asia/Shanghai，UTC+8）。** 两列星数来自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily)读取；「今日新增」保留页面 `stars today` 口径，不表示精确的滚动 24 小时。以下为本期选取的五个项目，按该页面当日增星重排。
+**采样：2026-11-16 08:59（Asia/Shanghai，UTC+8）。** 两列星数取自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily) 读取；「今日新增」沿用页面 `stars today`，不是精确滚动 24 小时。下表为选出的五个项目，按本次新增重排。
 
 | 项目 | 今日新增 stars | 同页累计 stars | 用途、许可证与落地判断 |
 | --- | ---: | ---: | --- |
-| [dream-num/univer](https://github.com/dream-num/univer) | 495 | 24,503 | 把文档和表格编辑、公式计算接入自己的产品或助手。开源 Web SDK 核心为 Apache-2.0；已发布 1.5.0，商用扩展另有许可。评估前先明确功能是否需要商用插件，并测试文件往返兼容性。 |
-| [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) | 227 | 120,080 | 为编码助手提供简写技能，并可用代理压缩部分工具输出。仓库为 Apache-2.0；已有 4.1.0 版。适合想控制 token 开销的团队，先看压缩后是否仍保留诊断、日志和评审所需的信息。 |
-| [ashhart/TensorFold](https://github.com/ashhart/TensorFold) | 37 | 2,165 | 本地模型推理引擎，适合对比不同硬件上的服务表现。引擎为 Apache-2.0，权重许可另查；已有版本发布，但一些模型和功能仍是实验性支持，不能把一套硬件的表现套用到其他配置。 |
-| [Tencent/LoopForge](https://github.com/Tencent/LoopForge) | 33 | 914 | 团队自托管的编码助手工作流，把实现、评审和人工批准串起来。主体为 MIT，第三方组件按各自条款；已有 0.3 系列和候选版。项目说明其默认 Docker 部署适用于受信团队，不宜当作不受信租户间的强隔离。 |
-| [ag-ui-protocol/ag-ui](https://github.com/ag-ui-protocol/ag-ui) | 9 | 17,371 | 用事件协议把助手的流式回复、工具状态和交互接入前端。MIT；已有 SDK、参考实现和版本发布。接入时要分别检查前端展示、服务端授权和会话间的数据隔离。 |
+| [backnotprop/plannotator](https://github.com/backnotprop/plannotator) | 866 | 11,839 | 用批注把编码助手的计划和差异交给人审。Apache-2.0，已有 0.28 系列；内容默认留在本地，使用分享功能前要核对链接可见性。 |
+| [ChromeDevTools/chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) | 717 | 56,931 | 为编码助手接入 Chrome 调试、性能记录等能力。Apache-2.0，已有 1.13 系列；适合前端测试，建议使用隔离的浏览器配置，避免暴露个人会话。 |
+| [alibaba/open-code-review](https://github.com/alibaba/open-code-review) | 691 | 52,100 | 用规则和模型辅助审查代码差异。Apache-2.0，已有 1.13 系列；企业接入前核对所配模型会收到哪些源码，审查意见仍要人工复核。 |
+| [google-labs-code/stitch-skills](https://github.com/google-labs-code/stitch-skills) | 247 | 9,299 | 给支持 Agent Skills 的编码助手接入 Stitch 设计流程。仓库 Apache-2.0，已有 1.0 标签；技能代码和外部服务不是同一许可，发送内部设计素材前先核对服务条款。 |
+| [NVIDIA/SkillEvaluator](https://github.com/NVIDIA/SkillEvaluator) | 122 | 1,684 | 从技能本身的检查延伸到实际任务评测。Apache-2.0，仍在 0.x；评测结果应注明模型、任务和工具权限，不宜直接套到别的配置。 |
 
-项目与许可（查阅：2026-11-15）：
-
-- Univer：[README](https://github.com/dream-num/univer/blob/dev/README.md) · [许可证](https://github.com/dream-num/univer/blob/dev/LICENSE)
-- Caveman：[README](https://github.com/JuliusBrussee/caveman/blob/main/README.md) · [许可证](https://github.com/JuliusBrussee/caveman/blob/main/LICENSE) · [v4.1.0](https://github.com/JuliusBrussee/caveman/releases/tag/v4.1.0)
-- TensorFold：[README](https://github.com/ashhart/TensorFold/blob/main/README.md) · [许可证](https://github.com/ashhart/TensorFold/blob/main/LICENSE)
-- LoopForge：[README](https://github.com/Tencent/LoopForge/blob/main/README.md) · [许可证](https://github.com/Tencent/LoopForge/blob/main/LICENSE)
-- AG-UI：[README](https://github.com/ag-ui-protocol/ag-ui/blob/main/README.md) · [许可证](https://github.com/ag-ui-protocol/ag-ui/blob/main/LICENSE)
-
-以上判断依据公开资料，本期未安装实测。星数反映关注度，不能代替质量和安全评估。模型、服务和依赖的许可需分别核对。
+项目原始资料为上表所链 GitHub 仓库的 README、许可证与发布记录，查阅于 2026-11-16。星数反映关注度，不代表质量或安全；本期未实装测试。
 
 ### 版本动态
 
-- **Univer v1.5.0**：于 11 月 14 日 18:33（北京时间）发布。增加独立图表工作表、堆叠折线图和误差线。版本说明也记录了公式计算的内存改动；嵌入式应用可以用既有的复杂工作簿测试保存再打开的效果。来源：[发布记录](https://github.com/dream-num/univer/releases/tag/v1.5.0)。
-- **TensorFold v1.2.8**：于 11 月 14 日 06:47（北京时间）发布。新增按请求 ID 取消推理，CUDA 后端支持 Qwen3 嵌入和重排模型，Metal 上的 DeepSeek-V4.1 文本推理仍标为实验性。来源：[发布记录](https://github.com/ashhart/TensorFold/releases/tag/v1.2.8)。
+- **Claude-Mem v15.18.5**（11 月 16 日 02:10，北京时间）修复了部分网络下 Tree-sitter CLI 下载失败、并行任务重复删除损坏 Chroma 集合，以及某些命令读取 `--help` 时误进运行流程的问题。后者见[对应修复](https://github.com/thedotmack/claude-mem/pull/6142)。[Mem0/Supermemory 导入](https://github.com/thedotmack/claude-mem/commit/5cc2fb16aa6d36b47d777d58dfd6456065510f9f)随后进入主分支，**不在这个发布标签里**。来源：[v15.18.5 发布记录](https://github.com/thedotmack/claude-mem/releases/tag/v15.18.5)。
+- **Open Code Review v1.13.10**（11 月 15 日 10:56，北京时间）为 workspace 模式加入 `--resume`；只指定 `--from` 时，比较终点默认取 HEAD。接进流水线时，先核对默认比较范围是否与原来的策略一致。来源：[v1.13.10 发布记录](https://github.com/alibaba/open-code-review/releases/tag/v1.13.10)。
 
 ## 接下来值得跟进
 
-下一次给助手换模型或接新工具时，可以用同一组真实任务测三个结果：它有没有找到可靠来源、有没有解决实际问题、完成一次要花多少钱。三项分开记，才能看出改动改善了哪一环。
+在更换端点或运行环境前，保留一组现有系统能完成的任务当基线。除了结果是否正确，分别记录数据去向、运行条件和重试次数，才知道变得更方便的是接入，还是交付本身。
 
-上一期见[第 023 期：模型能做什么，部署时又需要什么](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-11-14.md)，更多内容见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
+上一期见[第 024 期：给助手接上工具后，怎么判断它有没有解决问题？](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-11-15.md)，更多内容见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
