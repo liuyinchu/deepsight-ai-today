@@ -1,64 +1,66 @@
 # AI 前沿札记
 
-> 更新日期：2026-11-16（Asia/Shanghai） · 第 025 期
+> 更新日期：2026-11-17（Asia/Shanghai） · 第 026 期
 >
-> 信息范围：11 月 13 日至 11 月 16 日查得的公告、文档更新和版本记录；查阅日期：2026-11-16。作者公告日期沿用原文，GitHub 发布时间换算为北京时间。
+> 信息范围：11 月 15 日至 17 日查得的公告、文档和版本记录；查阅日期：2026-11-17。研究解读涉及 10 月旧预印本，另行注明。
 
-## 本期关注：选模型之前，先确定它要跑在哪里
+## 本期关注：接入变简单之后，什么还需要自己验证？
 
-华为云为昇腾和鸿蒙开发者提供了新的盘古托管入口；Datasette 则让数据助手能接到团队自己运行的模型。两者表面上都在增加模型选项，但真正需要验证的是：能不能在指定环境中完成任务、数据经过哪里、出问题时能不能换回原有方案。
+阿里云提供了新的旗舰模型入口，Hugging Face 把语言模型的托管路由交给 OpenRouter，Liquid AI 则把音频纳入结构化提取流程。三项变化都减少了集成工作，但它们没有替团队回答三个实际问题：任务要花多少钱、输入经过谁、结果错了能不能发现。
 
-## 01｜华为云 MaaS 上线 openPangu-2.1-Pro
+## 01｜Qwen4-Max 正式上线，先用完整任务算成本
 
-华为云预告 **11 月 15 日**上线 openPangu-2.1-Pro，同日更新的体验文档已经给出预置服务和 API 调用步骤。目前该体验文档仅列出 **西南-贵阳一** 区域；API 调用需开通服务并使用 API Key，按实际用量计费。华为云把 ArkTS 生成和昇腾算子开发列为升级重点，并称 Agent、代码生成和吞吐有所提升；本期未独立验证这些能力。此次核实的是云服务入口，不据此推定权重下载或生产许可的范围。
+阿里云 **11 月 16 日**宣布推出 Qwen4-Max；Model Studio 同日更新正式模型 `qwen4-max` 的调用文档。它接受文本、图片及视频输入，输出文本；**思考模式最大输入 983,616 tokens**，不等于可输出相同长度。查阅时，新加坡区域文档列出的标准价为每百万输入 tokens **1.50 美元**、每百万输出 tokens **4.50 美元**，思考 tokens 按输出计费。隐式缓存命中价是另一口径，不能当作所有请求的价格。本条核实的是托管 API，不代表同一模型权重开放下载。
 
-**我们的观察：** 有现成鸿蒙项目的团队，可以把「能否在原工程中通过构建和测试」作为验收项，而不是只比较生成的代码片段。仍在用 2.0 的团队应对照官方停服表核查迁移计划：贵阳一的 2.0 Flash 和 Pro 所列版本将于 **11 月 30 日 00:00（北京时间）**下线。
+**我们的观察：** 评估跨文件或长视频任务时，建议同时记录完成率、输入与输出用量和重试成本；否则长上下文带来的便利容易被高估。阿里自己的基准可作为选测试题的参考，不能代替团队样本。
 
-来源：[华为云上线预告](https://www.huaweicloud.com/partners/support/news/latestnews/20261106.html)（11 月 6 日） · [模型体验文档](https://support.huaweicloud.com/bestpractice-maas/bestpractice_maas_0021_03.html)（11 月 15 日更新） · [下线公告](https://support.huaweicloud.com/bulletin-maas/bulletin-maas-0002.html)。查阅：2026-11-16。
+来源：[阿里云发布公告](https://www.alibabacloud.com/en/press-room/alibaba-unveils-qwen4-max?_p_lc=1) · [Model Studio 模型、区域与计费](https://www.alibabacloud.com/help/en/model-studio/qwen4-max)（11 月 16 日）。查阅：2026-11-17。
 
-## 02｜Datasette Agent 可以接到本地模型
+## 02｜Hugging Face 的语言模型调用改由 OpenRouter 路由
 
-`datasette-llm` 于 **11 月 15 日 07:59（北京时间）**发布 **0.1a11**，新增 OpenAI 兼容端点支持。它是 Datasette 插件共用的模型配置层；作者演示了如何让 Datasette Agent 使用通过 LM Studio、Ollama 或 llama.cpp 提供的本地模型。这意味着要换模型服务时，可以先改端点配置，而不必为每个插件重写一套对接逻辑。这个版本仍是 **alpha**；接口兼容也不等于每个模型都同样擅长调用工具或生成 SQL。
+Hugging Face **11 月 16 日**宣布，Inference Providers 的语言模型请求改由 OpenRouter 路由。开发者仍可使用 Hugging Face token 与原有计费入口；同一模型有多个提供商时可以自动切换，也可用 `模型:提供商` 显式指定。旧有的语言模型自带上游密钥方式不再支持；图像、音频等非语言模型推理仍沿用原来的路由。这里的适用范围是已有推理提供商上线的模型，不是整个 Hub 都可以立即调用。
 
-**我们的观察：** 可以拿一份脱敏 SQLite 副本比较本地与托管模型，分别记录查询是否正确、是否需要人工修正，以及实际出站流量。本地模型端点不保证其他插件、日志或工具调用也完全留在本机。
+**我们的观察：** 面向普通用户的应用可对比自动切换前后的失败率、延迟和完成成本。受地区或数据处理约束的工作负载，应先固定经过批准的提供商，并验证所选配置是否满足要求，不能把同一 API 地址当成同一数据路径。
 
-来源：[项目发布记录](https://github.com/datasette/datasette-llm/releases/tag/0.1a11) · [作者的运行说明](https://simonwillison.net/2026/Nov/14/datasette-llm/)（原文日期 11 月 14 日）。查阅：2026-11-16。
+来源：[Hugging Face 官方说明](https://huggingface.co/blog/openrouter)（11 月 16 日）。查阅：2026-11-17。
 
-## 03｜火山方舟补上 Seedance 2.5 Flash API 档位
+## 03｜Liquid AI 的决策模型可以从音频中提取结构化结果
 
-火山方舟 **11 月 15 日**更新系列教程，将 `doubao-seedance-2-5-flash-261115` 列入视频生成 API。Flash 支持 **480p 和 720p（8 bit）**，不提供同系列旗舰档的 1080p。这里的新进展是 **Flash 档的 API**，不是 Seedance 2.5 系列首次发布，后者的官方介绍发表于 7 月 31 日。
+Liquid AI **11 月 16 日**发布 `d1.2` 和 `d1.2-ultra`，称当日已可通过 API 使用。两款新增音频输入，以及值抽取、文本片段定位、图片框选、数量估计和多选分类五类任务。这里的变化不是让模型输出语音，而是让应用能把音频直接交给决策模型执行分类或抽取等工作。厂商公布的效果比较不是本期独立测试结果。
 
-**我们的观察：** 做短片的团队可以用相同提示和参考素材，比较两个档位产出一条可用样片需要重试多少次。低分辨率能否满足分镜和预览，与最终交付是否用同一个档位，是两个问题。
+**我们的观察：** 既有「先转写、再提取」系统不必立即替换。用同一组经授权的录音，对照两条路线对数字、人名、否定语句和缺失字段的处理；除了抽取准确率，还要看哪些错误可以回溯到原始录音。
 
-来源：[火山方舟系列教程](https://docs.volcengine.com/docs/ark/seedance-2-5?lang=zh)（11 月 15 日更新） · [字节跳动 Seed 首发说明](https://seed.bytedance.com/en/blog/one-take-creation-flexible-referencing-introducing-seedance-2-5)（7 月 31 日）。查阅：2026-11-16。
+来源：[Liquid AI 技术发布与 API 示例](https://www.liquid.ai/blog/d1-2)（11 月 16 日）。查阅：2026-11-17。
 
-## 补看｜Haru-4B 的 65 毫秒测了什么？
+## 补看｜格点上的标准模型候选构造，Lean 检查了什么？
 
-higurashi **11 月 13 日**介绍了能同时听和说的研究用语音基础模型 Haru-4B，并公开权重与推理代码。作者报告约 **65 毫秒的中位延迟**：M1 Max、int8、优化过的原生 Swift/Metal 实现、有线麦克风和耳机；数字**不含音频分帧**，后者还可能增加最多约 **133 毫秒**。这不是从人说完一句话到助手答完的时间，也不是浏览器、蓝牙设备或云端服务的实测。做语音原型时，建议另外测量用户开始插话到系统停止播放的时间，并确认参考人声的使用授权。
+物理学家 Nathaniel Craig 在 **11 月 15 日**公开说明了他如何与 GPT‑6 Astra 合作，推进标准模型的一个有限格距候选构造。结果来自 **10 月 6 日**的预印本，此次新内容是作者解读。预印本随附的 Lean 报告称，数学配套材料的 16 个模块通过编译，证明经过内核重放；报告也记录了原参考比对没有通过，不能笼统说所有比对检查全过。本期没有独立复跑。
 
-来源：[作者技术说明](https://blog.higurashi.ai/melte/haru4b/)（11 月 13 日） · [模型卡](https://huggingface.co/higurashi-ai/Haru-4B)（权重 Apache-2.0） · [推理代码](https://github.com/higurashi-ai/Haru)。查阅：2026-11-16。
+有限格距上的构造不等于已证明反射正性，也不等于已得到完整相互作用理论的连续极限或一套实用模拟方法。把已检查的数学陈述和仍待解决的物理问题分开，比简单问「AI 做没做出物理发现」更有用。
+
+来源：[Craig 的原文](https://openai.com/index/step-toward-defining-the-standard-model/)（11 月 15 日） · [预印本](https://arxiv.org/abs/2610.09093)（10 月 6 日） · [随附 Lean 报告](https://arxiv.org/src/2610.09093v1/anc/lean-verification-report.pdf)。查阅：2026-11-17。
 
 ## 每日 GitHub AI 热点
 
-**采样：2026-11-16 08:59（Asia/Shanghai，UTC+8）。** 两列星数取自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily) 读取；「今日新增」沿用页面 `stars today`，不是精确滚动 24 小时。下表为选出的五个项目，按本次新增重排。
+**采样：2026-11-17 08:57（Asia/Shanghai，UTC+8）。** 两列来自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily) 读取；「今日新增」按页面 `stars today`，不是精确滚动 24 小时。本表选取四个项目，按当次新增重排。
 
 | 项目 | 今日新增 stars | 同页累计 stars | 用途、许可证与落地判断 |
 | --- | ---: | ---: | --- |
-| [backnotprop/plannotator](https://github.com/backnotprop/plannotator) | 866 | 11,839 | 用批注把编码助手的计划和差异交给人审。Apache-2.0，已有 0.28 系列；内容默认留在本地，使用分享功能前要核对链接可见性。 |
-| [ChromeDevTools/chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) | 717 | 56,931 | 为编码助手接入 Chrome 调试、性能记录等能力。Apache-2.0，已有 1.13 系列；适合前端测试，建议使用隔离的浏览器配置，避免暴露个人会话。 |
-| [alibaba/open-code-review](https://github.com/alibaba/open-code-review) | 691 | 52,100 | 用规则和模型辅助审查代码差异。Apache-2.0，已有 1.13 系列；企业接入前核对所配模型会收到哪些源码，审查意见仍要人工复核。 |
-| [google-labs-code/stitch-skills](https://github.com/google-labs-code/stitch-skills) | 247 | 9,299 | 给支持 Agent Skills 的编码助手接入 Stitch 设计流程。仓库 Apache-2.0，已有 1.0 标签；技能代码和外部服务不是同一许可，发送内部设计素材前先核对服务条款。 |
-| [NVIDIA/SkillEvaluator](https://github.com/NVIDIA/SkillEvaluator) | 122 | 1,684 | 从技能本身的检查延伸到实际任务评测。Apache-2.0，仍在 0.x；评测结果应注明模型、任务和工具权限，不宜直接套到别的配置。 |
+| [dream-num/univer](https://github.com/dream-num/univer) | 1,828 | 27,782 | 给应用嵌入电子表格、编辑和计算能力，可作为 Agent 的办公界面。开源核心 Apache-2.0，有 v1.5.2 发布；选型时把核心能力和商业扩展逐项对照，不把后者视作同一许可。 |
+| [ag-ui-protocol/ag-ui](https://github.com/ag-ui-protocol/ag-ui) | 791 | 18,986 | 为 Agent 与前端约定消息、状态等事件，适合需要流式显示任务进度的团队。MIT，有日期版本；协议不替应用做用户权限隔离。 |
+| [kajisho5/ffmpeg-skill](https://github.com/kajisho5/ffmpeg-skill) | 367 | 6,727 | 把剪切、字幕等 FFmpeg 操作包装成编码助手可调用的本地工具；仓库 MIT，已有 v3.10.1。FFmpeg 构建与编解码器许可另算，处理原素材建议留副本。 |
+| [google-research/paper-orchestra](https://github.com/google-research/paper-orchestra) | 313 | 1,519 | 辅助整理研究材料与撰写论文草稿的多 Agent 框架。Apache-2.0；采样时未见正式 GitHub Release。作者仍应逐条核对引用、结果及署名；未公开材料接入外部模型前需确认数据去向。 |
 
-项目原始资料为上表所链 GitHub 仓库的 README、许可证与发布记录，查阅于 2026-11-16。星数反映关注度，不代表质量或安全；本期未实装测试。
+项目原始资料为上表各仓库的 README、许可证和发布记录，查阅于 2026-11-17。星数反映关注度，不代表质量或安全；本期未实装。
 
-### 版本动态
+### 版本动态｜Claude-Mem 的跨库导入进入正式版本
 
-- **Claude-Mem v15.18.5**（11 月 16 日 02:10，北京时间）修复了部分网络下 Tree-sitter CLI 下载失败、并行任务重复删除损坏 Chroma 集合，以及某些命令读取 `--help` 时误进运行流程的问题。后者见[对应修复](https://github.com/thedotmack/claude-mem/pull/6142)。[Mem0/Supermemory 导入](https://github.com/thedotmack/claude-mem/commit/5cc2fb16aa6d36b47d777d58dfd6456065510f9f)随后进入主分支，**不在这个发布标签里**。来源：[v15.18.5 发布记录](https://github.com/thedotmack/claude-mem/releases/tag/v15.18.5)。
-- **Open Code Review v1.13.10**（11 月 15 日 10:56，北京时间）为 workspace 模式加入 `--resume`；只指定 `--from` 时，比较终点默认取 HEAD。接进流水线时，先核对默认比较范围是否与原来的策略一致。来源：[v1.13.10 发布记录](https://github.com/alibaba/open-code-review/releases/tag/v1.13.10)。
+上期还只在主分支的 Mem0／Supermemory 导入，已随 **Claude-Mem v15.19.0** 发布（11 月 16 日 10:04，北京时间）。这是一次性的单向导入，过程不调用模型；支持按项目导入并先用 `--dry-run` 预览，不是跨服务持续同步。迁移前建议先用少量已脱敏记录核对项目归属与导入结果。
+
+来源：[Claude-Mem v15.19.0 发布说明](https://github.com/thedotmack/claude-mem/releases/tag/v15.19.0)。查阅：2026-11-17。
 
 ## 接下来值得跟进
 
-在更换端点或运行环境前，保留一组现有系统能完成的任务当基线。除了结果是否正确，分别记录数据去向、运行条件和重试次数，才知道变得更方便的是接入，还是交付本身。
+同一批任务跑两遍：一次用原方案，一次用新接口。至少记录成功率、每个成功任务的实际费用，以及哪些数据发送给了哪家服务。接入步骤少了多少是一件事，交付质量有没有变好是另一件事。
 
-上一期见[第 024 期：给助手接上工具后，怎么判断它有没有解决问题？](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-11-15.md)，更多内容见[归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)。
+上一期：[第 025 期：选模型之前，先确定它要跑在哪里](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-11-16.md) · [归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)
