@@ -1,66 +1,68 @@
 # AI 前沿札记
 
-> 更新日期：2026-11-17（Asia/Shanghai） · 第 026 期
+> 更新日期：2026-11-18（Asia/Shanghai） · 第 027 期
 >
-> 信息范围：11 月 15 日至 17 日查得的公告、文档和版本记录；查阅日期：2026-11-17。研究解读涉及 10 月旧预印本，另行注明。
+> 信息范围：11 月 17–18 日查得的公告、模型卡和版本记录；查阅日期：2026-11-18。实验性经济统计的参考期为 2023–2024 年。
 
-## 本期关注：接入变简单之后，什么还需要自己验证？
+## 本期关注：成本降了，怎样确认任务真的做完了？
 
-阿里云提供了新的旗舰模型入口，Hugging Face 把语言模型的托管路由交给 OpenRouter，Liquid AI 则把音频纳入结构化提取流程。三项变化都减少了集成工作，但它们没有替团队回答三个实际问题：任务要花多少钱、输入经过谁、结果错了能不能发现。
+OpenAI 和微软都发布了面向工作或编程的新模型，商汤则用重复执行的模型层换取更深的计算。API 单价、每次任务花多少 tokens、本地要多少显存，是三个不同的问题。把它们和验收结果一起看，才知道节省发生在哪里。
 
-## 01｜Qwen4-Max 正式上线，先用完整任务算成本
+## 01｜GPT‑6.2：把账算到交付，不只算到每百万 tokens
 
-阿里云 **11 月 16 日**宣布推出 Qwen4-Max；Model Studio 同日更新正式模型 `qwen4-max` 的调用文档。它接受文本、图片及视频输入，输出文本；**思考模式最大输入 983,616 tokens**，不等于可输出相同长度。查阅时，新加坡区域文档列出的标准价为每百万输入 tokens **1.50 美元**、每百万输出 tokens **4.50 美元**，思考 tokens 按输出计费。隐式缓存命中价是另一口径，不能当作所有请求的价格。本条核实的是托管 API，不代表同一模型权重开放下载。
+OpenAI **11 月 17 日**发布 GPT‑6.2 Astra 和 Sol，开始在 ChatGPT Work、Codex 推出，并提供 `gpt-6.2-astra` 与 `gpt-6.2-sol` API。标准 API 每百万输入／缓存输入／输出 tokens，Astra 分别为 **8／0.40／40 美元**，Sol 为 **2／0.10／10 美元**；新版 Astra 的普通输入和输出单价分别比上一代低 20%。在 OpenAI 自行报告的 GDPval v2 专业任务评估中，Astra 相比 GPT‑6 Astra 高 6.2 个百分点，输出 tokens 少 22%。这是产品方的基准结果，不是所有生产流程的降本比例。
 
-**我们的观察：** 评估跨文件或长视频任务时，建议同时记录完成率、输入与输出用量和重试成本；否则长上下文带来的便利容易被高估。阿里自己的基准可作为选测试题的参考，不能代替团队样本。
+**我们的观察：** 评估代理时，除了成功任务的总费用，单独统计「没有完成却没有把阻塞写清楚」的比例。对同一组长任务记录工具调用、返工次数和人工补做时间，比只比较 API 单价更接近日常成本。
 
-来源：[阿里云发布公告](https://www.alibabacloud.com/en/press-room/alibaba-unveils-qwen4-max?_p_lc=1) · [Model Studio 模型、区域与计费](https://www.alibabacloud.com/help/en/model-studio/qwen4-max)（11 月 16 日）。查阅：2026-11-17。
+来源：[OpenAI 发布公告、评估和价格](https://openai.com/index/introducing-gpt-6-2-astra-sol/)（11 月 17 日）。查阅：2026-11-18。
 
-## 02｜Hugging Face 的语言模型调用改由 OpenRouter 路由
+## 02｜微软把两档编码模型放进同一套工作流
 
-Hugging Face **11 月 16 日**宣布，Inference Providers 的语言模型请求改由 OpenRouter 路由。开发者仍可使用 Hugging Face token 与原有计费入口；同一模型有多个提供商时可以自动切换，也可用 `模型:提供商` 显式指定。旧有的语言模型自带上游密钥方式不再支持；图像、音频等非语言模型推理仍沿用原来的路由。这里的适用范围是已有推理提供商上线的模型，不是整个 Hub 都可以立即调用。
+微软 **11 月 17 日**在 Ignite 公布 MAI Code 2 和 Code 2 Flash，两款均进入 GitHub Copilot 模型选择器，但可用档位和组织策略不同；Code 2 Flash 在 Foundry 仍为限量预览。微软把前者定位为复杂、耗时较长的仓库任务，把 Flash 定位为局部修改、代码解释等高频短任务。微软用四项编程基准的平均成绩和自身计价条件做成本对比；不同推理设置、重试率和任务组合会改变对比。同期宣布的 MAI Licensed Weights 面向获准的客户，不等于权重公开下载。
 
-**我们的观察：** 面向普通用户的应用可对比自动切换前后的失败率、延迟和完成成本。受地区或数据处理约束的工作负载，应先固定经过批准的提供商，并验证所选配置是否满足要求，不能把同一 API 地址当成同一数据路径。
+**我们的观察：** 用小改动和跨文件修复分别做评估，检查差异是否真能靠分流节省成本。除了单测，还应核对需求遗漏、改动范围和中途停下时给出的说明，避免快速档把返工转给评审者。GitHub 另宣布 Copilot 中旧版 MAI-Code-1.1-Flash 将于 12 月 18 日退役；有固定模型配置的团队可先验证管理员是否启用了新模型。
 
-来源：[Hugging Face 官方说明](https://huggingface.co/blog/openrouter)（11 月 16 日）。查阅：2026-11-17。
+来源：[微软 AI 两款模型说明](https://microsoft.ai/news/introducing-mai-code-2-and-mai-code-2-flash/) · [GitHub Copilot 可用范围](https://github.blog/changelog/2026-11-17-mai-code-2-and-mai-code-2-flash-in-github-copilot/) · [旧模型退役通知](https://github.blog/changelog/2026-11-17-upcoming-deprecation-of-mai-code-1-1-flash-in-december/)（11 月 17 日）。查阅：2026-11-18。
 
-## 03｜Liquid AI 的决策模型可以从音频中提取结构化结果
+## 03｜SenseNova-Loop-9B：显存数字要连着上下文长度一起读
 
-Liquid AI **11 月 16 日**发布 `d1.2` 和 `d1.2-ultra`，称当日已可通过 API 使用。两款新增音频输入，以及值抽取、文本片段定位、图片框选、数量估计和多选分类五类任务。这里的变化不是让模型输出语音，而是让应用能把音频直接交给决策模型执行分类或抽取等工作。厂商公布的效果比较不是本期独立测试结果。
+商汤 **11 月 17 日**发布 SenseNova-Loop-9B 正式版，开放权重和代码，模型卡列出 Apache-2.0 许可。模型约有 90 亿个参数，以共享权重重复执行中间的 24 层：存储 32 个不同的解码层，每次前向执行 56 层。它输入文字、图片并输出文字，支持最高 512K tokens；模型卡所列约 **15 GiB** 是开始部署前可以参考的估算，条件是 **256K 上下文、4 位权重和 8 位 KV 缓存**，不是 512K 的显存需求。厂商所报效果有强有弱：与 Qwen3.8-27B 相比，AIDABench 为 65.31 对 65.01，NL2Repo 为 41.36 对 44.60。
 
-**我们的观察：** 既有「先转写、再提取」系统不必立即替换。用同一组经授权的录音，对照两条路线对数字、人名、否定语句和缺失字段的处理；除了抽取准确率，还要看哪些错误可以回溯到原始录音。
+**我们的观察：** 用量化版试部署时，除了测能否载入，还应测首次输出时间、越长越难的输入以及并发下的显存。共享权重减少需要存储的参数，并不意味着重复执行的层没有耗时。
 
-来源：[Liquid AI 技术发布与 API 示例](https://www.liquid.ai/blog/d1-2)（11 月 16 日）。查阅：2026-11-17。
+来源：[SenseNova 正式模型卡、权重与条件](https://huggingface.co/sensenova/SenseNova-Loop-9B)（11 月 17 日；预览版为 10 月 31 日）。查阅：2026-11-18。
 
-## 补看｜格点上的标准模型候选构造，Lean 检查了什么？
+## 补看｜美国首次发布这套广义 AI 生产核算，口径并非生产率
 
-物理学家 Nathaniel Craig 在 **11 月 15 日**公开说明了他如何与 GPT‑6 Astra 合作，推进标准模型的一个有限格距候选构造。结果来自 **10 月 6 日**的预印本，此次新内容是作者解读。预印本随附的 Lean 报告称，数学配套材料的 16 个模块通过编译，证明经过内核重放；报告也记录了原参考比对没有通过，不能笼统说所有比对检查全过。本期没有独立复跑。
+美国经济分析局 **11 月 17 日**发布实验性统计。按其广义 AI 口径，2024 年相关生产贡献 **1,411 亿美元现价增加值**，占美国 GDP 约 **0.5%**，比 2023 年名义增长 **27.6%**。按原表推算，数据中心建设增加值贡献了这部分增加值增量的约 **26%**。报告使用的 “super intelligence” 是这套统计对广义 AI 的命名，并非在衡量达到某个智能门槛的系统。
 
-有限格距上的构造不等于已证明反射正性，也不等于已得到完整相互作用理论的连续极限或一套实用模拟方法。把已检查的数学陈述和仍待解决的物理问题分开，比简单问「AI 做没做出物理发现」更有用。
+这份数据反映 2023–2024 年的生产，不是 2026 年的采用率，也不能用来推断 AI 带来的劳动生产率增幅。厂商成本和效率变了多少，与宏观统计测到了多少经济活动，需要两套证据。
 
-来源：[Craig 的原文](https://openai.com/index/step-toward-defining-the-standard-model/)（11 月 15 日） · [预印本](https://arxiv.org/abs/2610.09093)（10 月 6 日） · [随附 Lean 报告](https://arxiv.org/src/2610.09093v1/anc/lean-verification-report.pdf)。查阅：2026-11-17。
+来源：[美国经济分析局文章与表 1](https://apps.bea.gov/scb/issues/2026/11-november/1126-experimental-super-intelligence.htm) · [统计口径与数据入口](https://www.bea.gov/data/special-topics/super-intelligence)（11 月 17 日）。查阅：2026-11-18。
 
 ## 每日 GitHub AI 热点
 
-**采样：2026-11-17 08:57（Asia/Shanghai，UTC+8）。** 两列来自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily) 读取；「今日新增」按页面 `stars today`，不是精确滚动 24 小时。本表选取四个项目，按当次新增重排。
+**采样：2026-11-18 08:57（Asia/Shanghai，UTC+8）。** 新增与累计来自同一次 [GitHub Trending 日榜](https://github.com/trending?since=daily) 读取；新增按页面 `stars today`，不等于精确滚动 24 小时。
 
 | 项目 | 今日新增 stars | 同页累计 stars | 用途、许可证与落地判断 |
 | --- | ---: | ---: | --- |
-| [dream-num/univer](https://github.com/dream-num/univer) | 1,828 | 27,782 | 给应用嵌入电子表格、编辑和计算能力，可作为 Agent 的办公界面。开源核心 Apache-2.0，有 v1.5.2 发布；选型时把核心能力和商业扩展逐项对照，不把后者视作同一许可。 |
-| [ag-ui-protocol/ag-ui](https://github.com/ag-ui-protocol/ag-ui) | 791 | 18,986 | 为 Agent 与前端约定消息、状态等事件，适合需要流式显示任务进度的团队。MIT，有日期版本；协议不替应用做用户权限隔离。 |
-| [kajisho5/ffmpeg-skill](https://github.com/kajisho5/ffmpeg-skill) | 367 | 6,727 | 把剪切、字幕等 FFmpeg 操作包装成编码助手可调用的本地工具；仓库 MIT，已有 v3.10.1。FFmpeg 构建与编解码器许可另算，处理原素材建议留副本。 |
-| [google-research/paper-orchestra](https://github.com/google-research/paper-orchestra) | 313 | 1,519 | 辅助整理研究材料与撰写论文草稿的多 Agent 框架。Apache-2.0；采样时未见正式 GitHub Release。作者仍应逐条核对引用、结果及署名；未公开材料接入外部模型前需确认数据去向。 |
+| [obra/superpowers](https://github.com/obra/superpowers) | 1,917 | 319,332 | 为编程助手提供可组合的规划、测试和评审流程。MIT，已有 v7.0.2；助手遵循流程不等于代码已经过独立审查。 |
+| [alibaba/open-code-review](https://github.com/alibaba/open-code-review) | 763 | 53,726 | 把改动和相关文件交给可配置模型，生成结构化代码审查结果。Apache-2.0，已有 v1.13.11；接入私有仓库前检查模型的数据处理边界，并抽样核对误报。 |
+| [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) | 696 | 69,061 | 给助手加入面向近期信息的多来源检索能力。MIT，已有 v4.3.2；不同上游接口可用性不同，写结论前仍要回到原始出处。 |
+| [Tencent/LoopForge](https://github.com/Tencent/LoopForge) | 591 | 3,142 | 自托管编程任务工作流，支持 Docker 和人工审批节点。v0.4.0；仓库许可证为 MIT，第三方组件各有条款。运行隔离与凭证权限仍须自行配置。 |
+| [google-labs-code/stitch-skills](https://github.com/google-labs-code/stitch-skills) | 350 | 10,105 | 为使用 Stitch 的助手提供设计与前端工作流技能。Apache-2.0，已有 v1.0；仓库许可不等于托管设计服务的使用条款。 |
+| [jingyaogong/minimind](https://github.com/jingyaogong/minimind) | 192 | 65,967 | 面向学习者的小模型训练项目，提供 v2 方案。代码 Apache-2.0；训练耗时取决于设备与参数，训练数据和权重的条款应分别核对。 |
 
-项目原始资料为上表各仓库的 README、许可证和发布记录，查阅于 2026-11-17。星数反映关注度，不代表质量或安全；本期未实装。
+以上用途、许可和版本查自各仓库 README、许可证及发布记录（查阅：2026-11-18）。星数反映关注度，不代表采用建议；本期未安装这些项目。
 
-### 版本动态｜Claude-Mem 的跨库导入进入正式版本
+### 版本动态｜Claude-Mem 的导入预览不再依赖后台服务
 
-上期还只在主分支的 Mem0／Supermemory 导入，已随 **Claude-Mem v15.19.0** 发布（11 月 16 日 10:04，北京时间）。这是一次性的单向导入，过程不调用模型；支持按项目导入并先用 `--dry-run` 预览，不是跨服务持续同步。迁移前建议先用少量已脱敏记录核对项目归属与导入结果。
+承接上期的跨库导入：v15.20.0 改善了 Supermemory 文档重导的判重，文档内容没变时，供应商处理元数据不再让新机制重复写入。但若某个文档最初由 v15.19.0 导入，且之后供应商改过这些元数据，升级后第一次重导仍可能多导一次。北京时间 **11 月 18 日**发布的 v15.21.0 又把 `import --dry-run` 与本地服务设置和认证分开；真正写入时仍会先检查服务。想迁移的团队可先预览，再用少量记录核对版本和重复条数。
 
-来源：[Claude-Mem v15.19.0 发布说明](https://github.com/thedotmack/claude-mem/releases/tag/v15.19.0)。查阅：2026-11-17。
+来源：[v15.20.0 发布说明](https://github.com/thedotmack/claude-mem/releases/tag/v15.20.0) · [旧版兼容边界](https://github.com/thedotmack/claude-mem/pull/6206) · [v15.21.0 发布说明](https://github.com/thedotmack/claude-mem/releases/tag/v15.21.0)。查阅：2026-11-18。
 
 ## 接下来值得跟进
 
-同一批任务跑两遍：一次用原方案，一次用新接口。至少记录成功率、每个成功任务的实际费用，以及哪些数据发送给了哪家服务。接入步骤少了多少是一件事，交付质量有没有变好是另一件事。
+把同一批真实任务分成短改动、长流程和本地长上下文三组。每组先写明验收条件，再记录成功率、人工补做时间，以及每个成功任务的实际成本。若失败的任务没被计入，模型再便宜也不能证明交付变便宜了。
 
-上一期：[第 025 期：选模型之前，先确定它要跑在哪里](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-11-16.md) · [归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)
+上一期：[第 026 期：接入变简单之后，什么还需要自己验证？](https://github.com/liuyinchu/deepsight-ai-today/blob/main/archive/2026-11-17.md) · [归档目录](https://github.com/liuyinchu/deepsight-ai-today/tree/main/archive)
