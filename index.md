@@ -1,54 +1,48 @@
 # AI 前沿札记
 
-> 更新日期：2026-11-19（Asia/Shanghai） · 第 028 期
+> 更新日期：2026-11-20（Asia/Shanghai） · 第 029 期
 >
-> 信息范围：11 月 18–19 日的产品公告、版本记录和 GitHub 日榜；查阅日期：2026-11-19。
+> 信息范围：11 月 19 日的开发者公告、版本记录与法规，以及 11 月 20 日早间的 GitHub 日榜；查阅日期：2026-11-20。
 
-## 本期关注：团队共用一套 AI 工具，怎么知道它真的更可靠？
+## 本期关注：从一次演示到可用服务，要把哪些边界测清楚？
 
-GitHub Copilot 可以为团队设定一组默认插件，Codex 开始区分不同环境里的同名服务，Claude-Mem 则补上了长日志最容易丢失的最后几行。三者分别在回答：团队到底用了什么工具、工具连到了哪里、任务实际跑出了什么结果。
+Genie 4 开放开发者接口后，可以把「这个世界看起来不错」拆成可测的问题：操作多久能生效、回到原处时场景是否一致、断线后生成何时停止。Claude-Mem 则给出另一个例子：只有检索失败时能及时切换，备用数据库才真的有用。
 
-## 01｜GitHub Copilot 把插件配置下放到团队，Gemini 4 Neon 同日接入
+## 01｜Genie 4 开放 Gemini API，交互世界可以接进自己的应用
 
-GitHub **11 月 18 日**正式开放组织团队的 Copilot 插件默认配置。团队维护者或组织所有者可选用获准的 Agent Plugins，默认应用到团队直接成员的 VS Code、Copilot App 和 Copilot CLI；子团队不会继承，组织和企业策略优先，允许时成员仍可自行关闭。另一个同日变化是 Gemini 4 Neon 接入 Copilot，面向 Pro+、Max、Business 和 Enterprise 逐步推出，按供应商标价计费。Google 所称任务成本更低、无关修改更少，是厂商比较，并非独立复测。
+Google **11 月 19 日**将 Genie 4 开放至 Gemini Interactions API 和 Google AI Studio。开发者可用文字、参考图或两者初始化场景，通过键盘操作与后续文字指令改变环境；公开接口输出 720p、24 帧每秒的视频，配同步立体声。开发文档要求付费层级的 API 密钥，标示约 **0.10 美元／生成秒**；关掉标签页或断开连接后，服务端不一定立刻停，应用需要显式结束会话。
 
-**我们的观察：** 团队默认配置最适合先统一测试、格式检查或内部文档查询等几项必要能力。不妨留一组不装插件的基线，用同一批任务比较通过率、误调用和人工复核时间；统一配置解决了「用没用同一套工具」，不直接证明工具有用。
+**我们的观察：** 这适合做短时交互原型，不应当作行为可重复的物理仿真器。Google 文档自己指出，模型没有持久的三维场景图，离开视野再返回时物体可能重置，单次会话上限为 120 秒。可以选同一张参考图跑几次「出门、转身、回房」的固定路线，分别记录操作延迟、物体重现率和实际计费时长，再决定要不要接进实际工作流。
 
-来源：[GitHub 团队插件公告](https://github.blog/changelog/2026-11-18-customize-github-copilot-for-your-team/) · [Gemini 4 Neon 的档位、计费与推出范围](https://github.blog/changelog/2026-11-18-gemini-4-neon-in-github-copilot/)（11 月 18 日）。查阅：2026-11-19。
+来源：[Google 开发者发布公告](https://blog.google/innovation-and-ai/technology/developers-tools/genie-4-in-gemini-api/)（11 月 19 日） · [Genie 4 接口文档：会话、计费与已知限制](https://aistudio.google.com/docs/genie)。查阅：2026-11-20。
 
-## 02｜Codex CLI 0.170.0 开始分开处理跨环境同名 MCP 服务
+## 02｜Claude-Mem v16.0.1 修复 PostgreSQL 多语言搜索，也让慢查询有机会回退
 
-OpenAI **11 月 18 日**发布 Codex CLI 0.170.0。跨环境使用同名模型上下文协议（MCP）服务进入实验支持；另有云端会话重连和恢复中的回合保留改进，以及终端实时语音通话的 WebRTC 协商。发行说明还列了 MCP OAuth 的竞态修复，但没有说明浏览器登录会话的持久性发生变化。
+Claude-Mem **11 月 19 日**发布 v16.0.1。与上期的语料证据检索修复不同，这次补的是 **PostgreSQL 服务端的普通查询**：现在能在未用空格切分的中文、日文假名和韩文中匹配子串；带引号、减号等网页搜索语法的查询以及可选 BM25 路径并未一起改动。另外，单次搜索的多次 Chroma 读取共享 **20 秒**预算，耗尽后走 SQLite／FTS5。之前单次 Chroma 读取上限达 60 秒，而部分客户端 30 秒就会放弃，备用路径来不及返回。
 
-**我们的观察：** 如果开发环境和测试环境碰巧用了同一个服务名，可以准备两条只读请求，确认它们分别落到预期环境，并在断开重连后各复测一次。需要核对的是目的地与返回值，而不是仅看连接状态。
+**我们的观察：** 应分别测「同一个词能否搜到」与「向量后端变慢后能否返回」。文本回退能提高可用性，不保证和向量搜索返回同样的结果或排序；20 秒也只是 Chroma 的共享预算，不是端到端响应承诺。
 
-来源：[Codex CLI 0.170.0 发布说明](https://github.com/openai/codex/releases/tag/rust-v0.170.0)（11 月 18 日）。查阅：2026-11-19。
+来源：[v16.0.1 发布说明](https://github.com/thedotmack/claude-mem/releases/tag/v16.0.1)（11 月 19 日） · [PostgreSQL 搜索变更](https://github.com/thedotmack/claude-mem/pull/6329) · [Chroma 回退变更](https://github.com/thedotmack/claude-mem/pull/6327)。查阅：2026-11-20。
 
-## 03｜Claude-Mem v16 恢复长 Bash 日志的真实结尾
+## 03｜美国先进算力规则生效，部分远程使用场景也纳入审查
 
-Claude-Mem **11 月 18 日**发布 v16.0.0。此前，当 Claude Code 截断过长的 Bash 结果并把完整输出另存时，生成记忆的组件拿到的是截断后的前缀，最后的测试汇总或报错可能不在其中。新版可从已保存的结果中取回真实末尾，提示长度上限不变。维护者也注明：如果标准错误输出本身很长，仍可能把恢复的标准输出末尾挤出提示。此前合并的中日文语料子串检索修复也随 v16 发布，适用范围是语料证据检索。
+美国商务部工业与安全局的《Addressing Remote Access to Advanced Semiconductors》临时最终规则于 **11 月 19 日**刊登并生效。它新增针对特定最终用途的许可要求，可能涉及把受控先进计算物项出口、再出口或境内转移给为特定实体提供远程算力的海外数据中心。规则关注适用物项、客户及其最终母公司、用途和服务规模，不能概括成「所有海外云 GPU 都要许可」。
 
-**我们的观察：** 长任务的交付证据至少应保留进程退出状态和实际测试汇总。有些命令执行了一半也能写出很长的日志；摘要或工具面板显示任务结束，不足以判断验收是否通过。
+**我们的观察：** 选云区不只看延迟和单价。涉及受控设备或客户的团队，应先向供应商核对服务与合规范围；实际需要许可证与否取决于交易事实和适用条款。后续值得追踪供应商公开更新的客户审核方式，以及服务范围有无明确变化。
 
-来源：[v16.0.0 发行说明](https://github.com/thedotmack/claude-mem/releases/tag/v16.0.0)（11 月 18 日） · [长输出问题与剩余限制](https://github.com/thedotmack/claude-mem/issues/6282) · [修复 PR](https://github.com/thedotmack/claude-mem/pull/6292)（11 月 17 日）。查阅：2026-11-19。
-
-## 补看｜Anthropic 确认 IPO 定价，首笔成交仍待观察
-
-Anthropic **11 月 18 日（美国当地日期）**宣布每股 **83 美元**、基础发售 **9.80 亿股**；其中约 **9.56 亿股**由公司出售，其余由现有股东出售。按公告计算，基础发售总额约 813.4 亿美元，含老股，不是公司净筹资额。纳斯达克预计 11 月 19 日当地开始交易，代码 ANT；本札记截稿时尚无首笔成交。对关注模型与算力投入的读者，发行定价提供的是资本端信号，不是模型能力、推理毛利或未来回报的验证。
-
-来源：[Anthropic 定价公告](https://www.anthropic.com/news/anthropic-prices-initial-public-offering) · [纳斯达克交易安排](https://www.nasdaqtrader.com/TraderNews.aspx?id=DTN2026-28)（11 月 18 日查得公告）。查阅：2026-11-19。
+来源：[美国《联邦公报》原文，91 FR 74970](https://www.govinfo.gov/content/pkg/FR-2026-11-19/pdf/2026-23529.pdf)（11 月 19 日）。查阅：2026-11-20。
 
 ## 每日 GitHub AI 热点
 
-采样：2026-11-19 约 09:00（Asia/Shanghai），[GitHub Trending 日榜](https://github.com/trending?since=daily)。增星为页面标注的「stars today」，不解释成精确滚动 24 小时；累计和增量用同一快照。这里只核过仓库原文及其许可声明，未运行项目。
+采样：2026-11-20 约 09:00（Asia/Shanghai），[GitHub Trending 日榜](https://github.com/trending?since=daily)，累计与增量取自同一快照。增量按页面标注的「stars today」，不是精确滚动 24 小时。只核对仓库原文和许可，未运行项目。
 
 | 项目 | 累计 star | 日榜增星 | 用途、许可与注意点 |
 | --- | ---: | ---: | --- |
-| [Cursor Plugins](https://github.com/cursor/plugins) | 17,205 | +314 | Cursor 官方插件仓库，每个插件有独立清单。仓库 README 标注 MIT；连接的外部服务另有条款和权限，逐个确认数据会发到哪里。 |
-| [CLI-Anything](https://github.com/HKUDS/CLI-Anything) | 59,742 | +389 | 为已有应用提供面向代理的命令行封装，并维护社区目录。仓库 Apache-2.0；外部应用有各自运行要求与许可，不应把社区入口当作每个封装都经过生产验证。 |
-| [NVIDIA SkillEvaluator](https://github.com/NVIDIA/SkillEvaluator) | 3,723 | +312 | 对代理技能做静态检查及有／无技能的沙箱对照，适合验证技能是否改善结果。Apache-2.0；项目方的既有成绩不能外推到团队的任务或其他模型。 |
-| [OpenVINO](https://github.com/openvinotoolkit/openvino) | 11,327 | +24 | 成熟的推理优化与部署工具链，适合准备本地推理的开发者。Apache-2.0；模型权重另看其许可，速度和算子支持须在目标设备上测。 |
+| [MiniMind](https://github.com/jingyaogong/minimind) | 66,865 | +238 | 小语言模型训练教学项目，包含数据、模型和训练脚本，适合拆解训练流程。代码 Apache-2.0；权重和训练数据须分开核对，自训耗时取决于硬件与配置。 |
+| [Firecrawl](https://github.com/firecrawl/firecrawl) | 204,232 | +825 | 将网页抓取、抽取和搜索接入代理或知识库，提供托管与自托管路径。主体 AGPL-3.0，部分 SDK 和界面组件为 MIT；确认子目录许可、目标站点规则及数据存放位置。 |
+| [Stitch Skills](https://github.com/google-labs-code/stitch-skills) | 10,719 | +302 | Google Labs 的 Stitch 技能库，供编码代理把界面设计与原型任务接到 Stitch MCP。仓库 Apache-2.0；外部服务可用性及权限另计，生成页面上线前仍需检查交互与无障碍。 |
+| [AFFiNE](https://github.com/toeverything/AFFiNE) | 75,169 | +182 | 本地优先的文档、白板和知识库，提供自托管社区版，也有 AI 辅助整理功能。社区版 MIT；启用 AI 前另查所用的模型服务、授权和数据流向。 |
 
 ## 还需要观察
 
-一组可复用的团队验收可以很简单：同一任务分别用默认与自定义插件运行，记录实际连接的环境、进程退出状态、测试通过数，以及人工复核用时。三项更新都提供了让这个过程更可查的线索，但都不能替代实际验收。行情与上市时间以交易所首笔成交为准，GitHub 增星只反映关注度。
+下一轮可以先验证两个容易被演示掩盖的失败场景：Genie 4 掉线后服务端是否按预期停止，以及 Claude-Mem 在 Chroma 变慢时能否返回项目范围正确的文本结果。前者牵涉成本，后者牵涉检索质量；都要测实际使用的版本和配置。
