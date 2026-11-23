@@ -1,59 +1,58 @@
 # AI 前沿札记
 
-> 更新日期：2026-11-22（Asia/Shanghai） · 第 031 期
+> 更新日期：2026-11-23（Asia/Shanghai） · 第 032 期
 >
-> 信息范围：11 月 20 日至 22 日早间的模型、开发工具和研究进展；GitHub 日榜采样于 11 月 22 日。查阅日期：2026-11-22。
+> 信息范围：11 月 20 日至 23 日早间的工程发布与研究核验，以北京时间为主。查阅日期：2026-11-23。
 
-## 本期关注：AI 给出结果后，怎样检查它真的做了对的事？
+## 本期关注：为什么只看最终输出，容易漏掉问题？
 
-黎曼猜想的形式化核验把两个问题分开了：证明能不能通过检查，以及它证明的是不是原来的命题。类似的区分也适用于工程：多模态模型有音频输入，不代表每种视听任务都更准；编程代理能调用工具，也不代表工具都走同一套审批流程。
+同样一段文字，在 llama.cpp 里可能是模型写给读者看的内容，也可能是结束推理的控制标记。类似地，Claude-Mem 的搜索结果不等于真正送入模型的上下文，Phoenix 的成本面板也不等于账单。这几处更新都提示了一个具体做法：验证代理时，除了看回答，还要检查它用了什么输入、怎样解析输出，以及成本到底算了哪些步骤。
 
-## 01｜黎曼猜想通过 Lean 核验，还用约数和做了另一种表述的检查
+## 01｜llama.cpp 开始按 token 身份区分推理标记和普通文本
 
-**11 月 21 日**，Lean FRO 与 Mathlib Initiative 确认，Levent Alpöge 在 Claude 协助下公开的形式化证明通过了核验。两套比对工具确认它证明的正是 Mathlib 的经典黎曼猜想，Lean 官方内核及多个独立检查器接受了导出的证明。与仅确认代码能编译相比，这一步还检查了证明目标有没有被换掉。
+**11 月 23 日 08:49（北京时间）**发布的 **b12638** 纳入 token 感知解析。以前只看拼接后的文本时，Qwen 等模型逐段写出的普通字符串 `</think>`，可能被误当成结束推理的专用 token。新版解析器可以按 token 身份匹配。PR 列出的接入范围包括 GPT-OSS、Qwen 3.5+、Gemma 4 和 Muse Glimmer；若标记未注册为专用 token，仍回退到字面文本匹配。
 
-Andrew Sutherland 的核验记录还列出狄利克雷 L 函数的结果，范围不包括一般的自守 L 函数。团队把 Alpöge 的证明与另行形式化的等价判据结合，检查了两条约数和不等式。例如，Lagarias 判据对每个正整数 n 只涉及它的约数和 σ(n) 与调和数 Hₙ：σ(n) ≤ Hₙ + exp(Hₙ) log(Hₙ)。这条目标不提 ζ 函数，却仍由同一份证明和既有等价关系推出，不是第二份独立证明。
+PR 作者还报告，在给 gpt-oss-20b 提供工具的 RTX 3090 测试中，生成到 12k–16k token 的区间时，速度从 **128.3 升至 142.4 token/s**。这是该设置下的结果，不能外推到所有模型和硬件，本期也未复测。
 
-**我们的观察：** 遇到 AI 生成的证明，除了让检查器接受其推导，还应该把要证明的原命题单独写出并比对。形式化核验通过，也不代替接下来解释这份证明的关键想法。
+**我们的观察：** 自托管模型升级后，值得专门测试「解释标记格式」和「实际调用工具」两类流式输出，确认正文、推理和工具参数没有串栏。解析修复不意味着输入里带控制 token 的问题也一并解决。
 
-来源：[Lean 社区核验声明](https://leanprover-community.github.io/blog/posts/riemann-hypothesis/)（11 月 21 日） · [Sutherland 的 MIT 核验记录](https://math.mit.edu/~drew/grh/) · [约数和命题比对日志](https://math.mit.edu/~drew/grh/arith-con-leche-compare.log) · [Lagarias 的等价判据](https://arxiv.org/abs/math/0008177)。
+来源：[llama.cpp b12638 发布记录](https://github.com/ggml-org/llama.cpp/releases/tag/b12638)（11 月 23 日） · [解析变更及作者的测试数据](https://github.com/ggml-org/llama.cpp/pull/29307)。
 
-## 02｜腾讯 WeMM-Video 开放权重：多听一路音频，不一定每项都更准
+## 02｜Claude-Mem v16.0.4：旧标签能搜到，也要能进入上下文
 
-腾讯微信视觉团队于 **11 月 20 日（北京时间）**发布 WeMM-Video 的 2B 和 35B-A3B 权重，**21 日**在旗舰模型卡补充音频与音乐评测。模型接收采样视频帧和可选的原始音轨，以中英文输出文本，用于视听理解而非视频生成。2B 权重标注 Apache-2.0；其 BF16 文件合计约 6.12 GiB，不是实际推理显存。旗舰版是约 35B 总参数、约 3B 激活的混合专家模型，不能把它与 2B 稠密版混为一谈。
+**11 月 23 日 03:13（北京时间）**发布的 v16.0.4 修复了两条读取路径对旧数据的不同处理：例如旧记忆的主题字段是普通字符串「缓存」，关键词搜索原本能找回这条记录，但生成上下文时却会丢掉它。新版把普通字符串、JSON 字符串和数组统一处理，只匹配文本项；项目内和跨项目的两条上下文查询都用同一套过滤逻辑。合并的数据库回归测试覆盖了旧数据格式和项目隔离。
 
-**已知边界：** 同一张表里，作者报告旗舰模型从 Instruct 切换到 Thinking 后，带音频的 Video-MME 从 **84.2 升至 86.4**，但 JointAVBench 从 **67.4 降至 65.9**。本期未复跑该结果。
+**我们的观察：** 检查记忆系统时，可以用同一条历史记录分别走手动搜索和自动上下文注入，核对实际送入模型的内容。这个修复针对旧标签的读取一致性，不是中文正文搜索排序的更新。
 
-**我们的观察：** 对课程录像、访谈或带背景声的素材，用同一组视频分别测「有音轨／无音轨」与「是否启用 Thinking」，再看在哪类题上改善。总分高一点，并不能回答音频是否帮模型理解了某个具体情节。
+来源：[Claude-Mem v16.0.4](https://github.com/thedotmack/claude-mem/releases/tag/v16.0.4)（11 月 22 日 UTC） · [旧主题字段兼容与回归测试 #6393](https://github.com/thedotmack/claude-mem/pull/6393)。
 
-来源：[腾讯项目与使用说明](https://github.com/Tencent/WeMM-Video) · [2B 权重及许可](https://huggingface.co/tencent/WeMM-Video-2B) · [35B-A3B 模型卡](https://huggingface.co/tencent/WeMM-Video-35BA3B) · [预印本评测表](https://arxiv.org/html/2611.26409v1#S5)。
+## 03｜黎曼猜想核验续篇：离线重建复现了约 61.6 GB 的证明导出
 
-## 03｜OpenAI Agents SDK 预览版内嵌 Codex，审批仍需分两条路径测
+MIT 的 Andrew Sutherland 在 **11 月 23 日 00:20（北京时间）**更新核验记录。与上期核对命题和检查器结果不同，这次新增的是重建证据：在另一台机器上断网、以只读源码重建，导出的证明与原导出 **61,570,595,788 字节逐字节一致**。逐个比较相同构建路径下的编译产物，**175,186／175,187** 个一致；唯一不同的文件相差 38 字节，审计追到并行构建时选出的一个绑定变量名，该引理未进入导出证明的依赖。
 
-OpenAI 在 **11 月 20 日 UTC（北京时间 21 日）**发布 Python Agents SDK v1.0.0-alpha.1。预览 wheel 仅在 GitHub Releases 提供，嵌入 Codex Core，需显式选用；工作流仍由 Python Runner 管理。SDK 的 Python 工具需要批准时可暂停和恢复；如果是 Codex 原生工具提出批准，这个预览版不会把它变成可恢复的审批，而会让该次模型调用失败。旧预览的会话状态与新 Runner 的恢复状态也不可直接互换。
+**仍在检查什么：** 这份审计已经用 Lean 内核逐模块重放，独立检查器也已接受全量导出；但这次审计从导出文件启动的 Lean 单线程检查和完整 Comparator 流程，记录上仍在运行。重建能回答「发布的导出是否由这份源码得到」，不等于另找到了一个黎曼猜想证明。
 
-**我们的观察：** 用这版试验时，分别验证 Python 工具「审批后恢复」和 Codex 原生工具「请求审批后调用失败」，再考虑迁移。官方 CI 通过四种平台的 wheel 构建及安装检查；发布记录给出的真实模型调用示例是 Linux x86-64，不能推出其他平台都跑过端到端用例。
+来源：[MIT 核验记录及构建差异](https://math.mit.edu/~drew/grh/)（11 月 22 日 16:20 UTC） · [沙箱重建时间线](https://math.mit.edu/~drew/grh/sandbox-timeline.txt)。
 
-来源：[GitHub 预览发行版](https://github.com/openai/openai-agents-python/releases/tag/v1.0.0-alpha.1) · [对应版本的执行及审批说明](https://github.com/openai/openai-agents-python/blob/87e8f533c3b457fe632a5eb38ac42590d7f4d9fc/docs/models/codex.md#configure-execution) · [官方 wheel CI](https://github.com/openai/openai-agents-python/actions/runs/44792830563)。
+## 补看｜Phoenix 22.0：升级后成本曲线上升，可能只是口径变了
 
-## 补看｜同一模型加代理适配器，收益取决于工作流
+Phoenix **11 月 20 日**发布 22.0.0，把决策与向量嵌入步骤纳入成本汇总，但普通 token 计数仍仅覆盖 LLM；升级前已采集的这两类调用不会补计成本。旧的 `cumulative_*` 过滤字段也不再适用。北京时间 **22 日**发布的 22.0.1 另修复了取消批次后加载器可能卡住服务器的问题。
 
-Hugging Face **11 月 20 日**公布实验：在同一冻结的 Qwen3.8-27B 基座上，把多套代理工作流训练的 LoRA 合成一个秩为 96 的适配器。在各工作流自己的 SWE-bench Pro 难题子集上，OpenCode **47.1%→66.7%**，Pi 保持 **74.0%**；换到另一个工作流的 300 项 AutomationBench，成功率只从 **23.0% 到 23.7%**。这不是对代理框架的横向排名，也没有显示普遍可迁移的增益。
+**我们的观察：** 比较代理版本的成本时，用同一采集版本、同一批任务重跑，或在升级日把数据分段。先检查有没有未定价的调用，再用供应商账单核对；面板多算了之前没覆盖的步骤，并不说明供应商涨价。
 
-**我们的观察：** 比较模型或适配器时，尽量固定任务、工具权限和运行设置，再判断收益是否来自适配器。作者报告的工具调用缩减只针对关闭 Thinking 时两组都解出的任务，不能据此推算整体成本。
-
-来源：[Hugging Face：适配器合并结果与独立工作流测试](https://huggingface.co/blog/harness-adapters-at-scale#adapter-merging-evaluation-results)（11 月 20 日）。
+来源：[Phoenix 22.0.0 发布说明](https://github.com/Arize-ai/phoenix/releases/tag/arize-phoenix-v22.0.0) · [计费范围、历史数据和查询兼容性](https://github.com/Arize-ai/phoenix/pull/17525) · [22.0.1 修订版](https://github.com/Arize-ai/phoenix/releases/tag/arize-phoenix-v22.0.1)。
 
 ## 每日 GitHub AI 热点
 
-采样：2026-11-22 约 09:03（Asia/Shanghai），[GitHub Trending 日榜](https://github.com/trending?since=daily)。原页的「stars today」不是精确滚动 24 小时。本期只列与本文主题相近、有明确用途的项目；星数不是质量评分，未安装或运行这些仓库。
+采样：2026-11-23 约 08:59（Asia/Shanghai），[GitHub Trending 日榜](https://github.com/trending?since=daily)。增量为原页「stars today」，不是精确滚动 24 小时；累计与增量使用同一页快照。热度不代表质量，本期未安装或运行下列项目。
 
 | 项目 | 累计 star | 日榜增星 | 用途、许可与注意点 |
 | --- | ---: | ---: | --- |
-| [OpenSRE](https://github.com/Tracer-Cloud/opensre) | 13,989 | +450 | 可自托管的 CI/CD 故障分析代理，Apache-2.0，有 0.1 系列发行版。适合先在测试仓库核对日志的数据去向、模型权限和建议质量。 |
-| [App Store Compliance](https://github.com/mjmirza/app-store-compliance) | 3,401 | +720 | 汇集应用商店规则、检查清单和辅助脚本，适合上架前做初筛，不能代替 Apple／Google 的现行规则和实际审核。仓库现用带商业条件的 OpenRoots Agent License 2.3，不是 MIT。 |
-| [Cursor Plugins](https://github.com/cursor/plugins) | 18,110 | +260 | 官方插件规范与示例库，仓库 README 标注 MIT。适合作为清单和分发结构参考；实际接入前逐个核对插件所请求的权限及外部服务条款。 |
+| [AutoClip](https://github.com/zhouxiaoka/autoclip) | 13,441 | +641 | 长视频剪成短片的桌面、CLI 和 MCP 工具，MIT。23 日早间发布 [v1.5.9](https://github.com/zhouxiaoka/autoclip/releases/tag/v1.5.9)，导入可以直接附字幕。发布说明同时提到未设置选择时会自动上传失败诊断及本地素材的压缩短片段；处理未公开素材前先核对诊断设置和模型的数据去向。 |
+| [Firecrawl](https://github.com/firecrawl/firecrawl) | 207,040 | +915 | 面向知识库和代理的网页提取工具。主体 AGPL-3.0，部分 SDK 与界面采 MIT。本地二进制可抓取页面并输出 Markdown，但其搜索等能力会连接云服务；有数据驻留要求时，需分别核对抓取与搜索的请求路径。 |
+| [Stitch Skills](https://github.com/google-labs-code/stitch-skills) | 11,922 | +494 | Google Labs 的界面设计技能集，Apache-2.0，已有 v1.0；部分流程会将 HTML 或图片传给 Stitch 项目，须配置 Stitch MCP，不是离线设计工具。 |
+| [MiniMind](https://github.com/jingyaogong/minimind) | 68,651 | +473 | 有正式发布的小语言模型训练教学项目，可从预训练走到微调、偏好优化和蒸馏。仓库 Apache-2.0；外部数据、权重和训练用时需按所选版本分别核对。 |
 
 ## 还需要观察
 
-下一步值得追踪三件事：数论研究者能否把形式证明提炼成可读的核心论证，WeMM-Video 的音轨收益能否在实际素材中复现，以及 Agents SDK 正式版会怎样处理来自 Codex 原生工具的审批。
+接下来最有用的三项检查：用长输出复测 llama.cpp 的流式解析；在保留多年历史的记忆库中比对搜索和注入；迁移 Phoenix 后，以同一批运行验证新旧成本口径。
