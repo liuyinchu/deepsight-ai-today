@@ -1,71 +1,67 @@
 # AI 前沿札记
 
-> 更新日期：2026-11-25（Asia/Shanghai） · 第 034 期
+> 更新日期：2026-11-26（Asia/Shanghai） · 第 035 期
 >
-> 信息范围：11 月 23 日至 25 日早间的发布与核验。查阅日期：2026-11-25。
+> 信息范围：11 月 24 日至 26 日早间的发布与核验。查阅日期：2026-11-26。
 
-## 本期关注：什么被验证了，什么还没有？
+## 本期关注：一次通过，离稳定可靠还有多远？
 
-一份 Lean 证明通过检查，说明的是写进形式系统的命题；一组翻译分数变好，说明的是指定样本和评判规则下的表现。今天两项值得关注的进展都给了可查的材料，但从证据到结论，中间不能跳步。
+Anthropic 重写 Claude 的 API 时，约 98% 的移植测试已经通过，抽查生产流量却只有约四分之一匹配。DeepMind 的新评测也问了一个类似的问题：模型能答对一道题，换张图、换种问法再多试几次，结果还能保持吗？两件事都值得看评测是怎么做的，而不只看最后一个百分比。
 
-## 01｜VP 与 VNP：两份公开材料，先读各自证明的范围
+## 01｜Claude Messages API 迁往 Rust：复用同一次模型输出，再查服务端差异
 
-北京时间 **11 月 24 日 05:43**，Anthropic 将关于 VP 与 VNP 分离的论文和 Lean 工程合入公开仓库。对应提交的持续集成记录显示，`lake build` 与 Palomar Comparator 对工作流声明的各项配置均成功；其中用到了另一套实现的检验内核 nanoda。这是作者公开工作流里的交叉检查，不等于第三方已独立重建或核对了整篇论文。仓库说明列出了正文与 Lean 陈述的对应关系，细节可从附录 Q 查起。
+Anthropic 11 月 25 日发布工程复盘。团队把 Python 实现的集成测试迁到 Rust；4 月约 98% 的测试已通过，但生产流量对照中仅约四分之一的输入匹配。检查发现，移植后的测试有 100 多处断言变宽。团队改用真实请求对照新旧实现，并设法把模型的随机性与服务端差异分开：模型只生成一次，同一份输出再交给新实现，分别比较推理前后的处理。
 
-OpenAI 的项目记录也将公开日期标为 **11 月 23 日**。其 Lean 说明明确把形式化结论限定为任意域上、精确计算的非一致算术电路；论文另述的更强边界电路复杂度下界，不应一并算作这份 Lean 工程已核验的结论。两份材料研究的是多项式的算术电路复杂度；**这不是布尔计算里的 P vs NP**，也不把两份公开材料当作彼此的独立审计。
+行为一致也不总意味着需求满足。一次修复把网页搜索工具的描述写死，虽然通过了对照，工程师仍否决了，因为服务需要动态获取当前描述。迁移后，Anthropic 报告一个区域的每请求 CPU 用量约降 **70%**；另在所观测的 Claude Code 客户端流量里，首 token 时间中位数约降 **20%**。两组指标的观测范围不同，也不是所有应用都能达到的收益。做类似重写时，值得先保留一套不随新实现改写的验收输入，再明确哪些旧行为应该保留。
 
-为什么值得读：代码与通过记录让人能检查结论是怎么表述的。比起只看「通过」标记，更有用的做法是打开形式定理，对照论文里「精确计算」「近似」分别对应哪些定义与假设。
+来源：[Anthropic 工程复盘、生产流量对照与图 15](https://www.anthropic.com/research/migrating-api-to-rust)（11 月 25 日）。
 
-来源：[Anthropic 合并记录](https://github.com/anthropics/formal-math/pull/51) · [Lean 工程与正文对应说明](https://github.com/anthropics/formal-math/blob/11b6c7e3c927df2658f513b6b68ea7f8929c62c5/vp-vnp/README.md) · [实际核验作业](https://github.com/anthropics/formal-math/actions/runs/45272623486/job/138036167794) · [OpenAI 发布记录](https://github.com/openai/math/blob/main/history.md) · [OpenAI 的 Lean 定理范围](https://github.com/openai/math/blob/main/lean/docs/379.md)。
+## 02｜DeepMind 的 HFE：单次答对率与反复答对率分开看
 
-## 02｜腾讯开放 Hy-MT3 权重：先看译文漏没漏
+Google DeepMind 11 月 24 日发布 Humanity’s First Exam。报告将 **544** 个文字或图像提示分为 **136** 组，每组有四个变体，每个提示生成六次。严格组分数估计的是：每个变体从六次结果里不放回抽四次，四个变体共十六次全部正确的概率。若某一变体六次只答对五次，即使其他变体全对，这一组的概率也只有三分之一。
 
-腾讯 11 月 24 日公开 Hy-MT3 的 **1.8B、7B 和 30B-A3B** 三组权重，三份主模型仓库均标注 Apache-2.0。官方技术报告 v2 发布于 11 月 23 日。报告第 3.5 节在 5,000 条 WildMTBench-202611 样本上对比两代同尺寸 30B-A3B；由两套自动评判模型评估，出现至少一处遗漏或增译的样本比例从 **21.2% 降至 5.5%**。这是作者在不提供参考译文时的评测，不是独立复测，也不能移用到 1.8B、7B 或任意语言对。
+在报告表 4，GPT-6.2 Astra（xhigh）从单次 **97.8%** 降到严格组 **92.4%**；Claude Fable 5.2（max）从 **93.4%** 降到 **73.7%**。两者在同表「十六次至少答对一次」这一较宽松指标上的点估计却都是 100%。这些是作者在指定推理设置下、单轮且不使用工具的结果，评分采用 Gemini 3.1 Pro；不能当作实际工作流的可靠率。对于要自动执行的步骤，比起让模型多试几次后只记最好结果，更有用的是记录错误是否会随提示变体重复出现。
 
-译技术文档时，可以先拿一段有单位、链接、代码占位符和重复术语的真实样本做并排比较。把漏译和格式损坏单列，别让译文的流畅度掩盖这些更难察觉的问题。也不要把报告中的文字翻译指标外推到图像翻译；后者包含单独的文字识别环节。
+来源：[DeepMind 发布说明](https://blog.google/innovation-and-ai/models-and-research/google-deepmind/humanitys-first-exam/)（11 月 24 日） · [技术报告 §§3.3–4.1、表 4](https://storage.googleapis.com/deepmind-media/papers/hfe_tech_paper.pdf)。
 
-来源：[腾讯发布仓库及各权重入口](https://github.com/Tencent-Hunyuan/Hy-MT3)（11 月 24 日） · [技术报告 §3.5、表 5](https://arxiv.org/html/2611.27673v2#S3.SS5)（11 月 23 日）。
+## 03｜VP 与 VNP 后续：OpenAI 扩到四层算术复杂度
 
-## 03｜Agents SDK 0.26.0：升级前检查本地图片和 Docker 挂载
+OpenAI 的项目记录将新版标为 11 月 24 日，仓库随后合入了扩展稿。与上期提到的精确 VP/VNP 分离相比，新说明列出任意域上的三个严格包含：**VF ⊊ VBP ⊊ VP ⊊ VNP**。作者分别用路径、完全二叉树和方格上的状态和构造分隔例，对应算术公式、算术分支程序、算术电路及其验证器求和所定义的层级。
 
-OpenAI 11 月 24 日发布 Python Agents SDK **0.26.0**。实验性 Codex 工具读取受信任的本地图片时，需要由宿主应用预先批准对应的图片引用；创建和恢复会话时均会检查。Docker 也不再接受旧式容器内存储挂载，即使是只读挂载；受影响的应用需要改用支持的卷或由应用管理的受信任挂载，并按新配置启动新会话。
+核验范围也有一处实质变化：新 Lean 范围说明称，方格族还排除了多项式规模的「按次数分量取极限」的边界电路，但论文更强的显式定量下界仍未形式化。公开 Comparator 挑战文件陈述的是**精确类**的三级分离；合并记录没有报告为这次合并运行 Lean 或 LaTeX 构建。这里核对的是源码和作者对范围的说明，未独立重跑。这仍不是布尔计算里的 P vs NP。
 
-还有一个容易误读的行为：输入护栏拒绝请求时，新版会停止尚在排队的工具；如果业务要求校验结束前**任何**工具都不能启动，还需要关闭该护栏的并行运行。升级测试应分开验证新开与恢复会话，以及拒绝时是否已经触发外部动作，不能只看运行末尾有没有返回错误。
+来源：[前版范围](https://github.com/openai/math/blob/f5702854040e97fa7675c21ba37a9608f5f92dd3/lean/docs/379.md) · [新版范围（固定提交）](https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/docs/379.md) · [Comparator 陈述](https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/ComparatorChallenges/ArithmeticHierarchy.lean) · [合并与验证记录](https://github.com/openai/math/pull/6)。
 
-来源：[OpenAI Agents SDK v0.26.0 发布及迁移说明](https://github.com/openai/openai-agents-python/releases/tag/v0.26.0)（11 月 24 日）。
+## 补看｜ChatGPT 与 Codex 将共享用量，Instant 不扣这份额度
 
-## 补看｜Claude-Mem 16.1.3 修补 OpenRouter 队列丢失
+截至 11 月 26 日查阅，OpenAI 帮助中心称 Plus、Pro、Business 从 12 月开始陆续使用 ChatGPT 与 Codex 的共享用量，少量账号会提前启用。用量按 token 计，模型和任务会影响消耗，Instant 聊天不扣这份共享额度。启用后，能在「设置 → 用量」查看合计剩余及重置时间。公告没有给出每个账号启用的具体日期，也不是 API 计费变更。
 
-北京时间 **11 月 25 日 02:32**发布的 v16.1.3 修复了 OpenRouter 后台工作进程的一条错误路径：有时 HTTP 状态是 200，但响应正文里有临时错误。旧版可能把它当成不可恢复错误，结束会话并丢弃排队中的观察记录。新版识别正文里的数值错误码，把 429 和 5xx 交给相应的限流或临时故障处理；已识别为模型运行后产生的输出错误仍不重发，避免重复计费。
+来源：[OpenAI：ChatGPT 与 Codex 用量说明](https://help.openai.com/en/articles/20001625-understanding-chatgpt-and-codex-usage-limits)。
 
-影响范围是 OpenRouter 工作进程，不等于所有服务端错误路径都改了，也不会恢复以前丢失的记录。使用这一提供方的部署，可在升级后对照队列与会话日志，确认临时失败后记录仍能处理。
+## 补看｜Claude Code 2.1.332 可加载 MCP 技能，旧版需单独测试
 
-来源：[Claude-Mem v16.1.3 发布说明](https://github.com/thedotmack/claude-mem/releases/tag/v16.1.3) · [合入的修复及测试说明](https://github.com/thedotmack/claude-mem/pull/6448)。
+11 月 25 日发布的版本加入 MCP 服务端技能（Beta），在菜单中以 `server:skill` 显示；同时加入 `PreSkillShellCommand`，可在技能或命令载入时拦下其内联 shell 命令。发布说明提醒，2.1.331 及更早版本读取含这个事件的配置会在启动时弹出对话框。团队若共用配置，先核对版本，并用无副作用的命令验证拒绝规则；该钩子不等于对插件或整个 MCP 服务做过审计。
 
-## 补看｜ERNIE 5.5 Flash Preview 可自部署，先算权重体积
+来源：[Claude Code v2.1.332 发布说明](https://github.com/anthropics/claude-code/releases/tag/v2.1.332)。
 
-百度在 11 月 24 日公开了此前先提供 API 的 ERNIE 5.5 Flash Preview 权重。Preview 权重采用 Apache-2.0，不能把同样条款套用到单独发布的 Base。发布者模型卡标注 **280B 总参数、每 token 激活 14B**；默认 FP8/FP4 混合权重仓库的文件体积约 **166 GB**，并不是下载一个 14B 密集模型的量级。这个数是存储体积，不是显存门槛。模型卡的约 105 万 token 上下文也和示例服务配置的 131,072 token 上限不同，部署时应按目标长度和并发实测。
+## 补看｜ggml 1.1.0 减少空等，并补 Metal 的 NVFP4 支持
 
-来源：[百度早期 API 发布说明](https://ernie.baidu.com/release/ernie-5-5-flash-preview/) · [百度发布的模型卡](https://huggingface.co/baidu/ERNIE-5.5-Flash-Preview) · [Hugging Face 仓库数据](https://huggingface.co/api/models/baidu/ERNIE-5.5-Flash-Preview) · [Preview 权重许可证](https://huggingface.co/baidu/ERNIE-5.5-Flash-Preview/blob/main/LICENSE)。
+11 月 25 日的 ggml **v1.1.0** 和 llama.cpp 预发布 **b12707** 都包含非 OpenMP 构建过度轮询 CPU 的修复。另一个独立变化是 ggml 1.1.0 为 Metal 增加 NVFP4 GGUF 的矩阵运算内核；维护者说明对应运算此前会退回 CPU。对 Apple GPU 部署，先确认实际构建包含哪些提交，再用目标模型和批大小比较推理速度与 CPU 占用。上游发布不代表下游包已跟进。
 
-## 补看｜Qwen4-Max 预览版今日退场，排查旧模型 ID
-
-截至今早查阅，阿里云百炼的中文模型页、套餐更新记录和团队版权益页均将 11 月 25 日 10:00（北京时间）列为预览结束时间。旧版文档曾列到当日午夜，不宜据此假定预览接口仍可调用；本文未实测接口。正式版 `qwen4-max` 已列入 Token Plan 个人版和团队版。若脚本仍指向 `qwen4-max-preview`，按较早时刻准备切换；尤其要回归带思考的长输出，确认推理和最终文本共用预算时，正文仍能完整返回。
-
-来源：[阿里云百炼中文模型页](https://help.aliyun.com/zh/model-studio/qwen4-max-preview) · [百炼中文套餐更新记录](https://help.aliyun.com/zh/model-studio/token-plan-product-updates) · [百炼团队版权益](https://help.aliyun.com/zh/model-studio/token-plan-team-overview) · [正式版 API 文档](https://help.aliyun.com/zh/model-studio/qwen4-max)。
+来源：[ggml v1.1.0](https://github.com/ggml-org/ggml/releases/tag/v1.1.0) · [llama.cpp b12707](https://github.com/ggml-org/llama.cpp/releases/tag/b12707) · [Metal 实现与测试条件](https://github.com/ggml-org/llama.cpp/pull/32825)。
 
 ## 每日 GitHub AI 热点
 
-2026-11-25 约 09:01（北京时间）查阅 [GitHub Trending 日榜](https://github.com/trending)。累计星数和 “stars today” 均取自该页面同一份快照，后者不等于精确滚动 24 小时。这里核对了项目文档和仓库许可，未安装或试跑；星数不是质量或安全背书。
+2026-11-26 约 09:03（北京时间）读取 [GitHub Trending 日榜](https://github.com/trending)。累计 star 与「stars today」来自同一份页面快照；后者不代表精确滚动 24 小时。核对了仓库说明、版本与许可，未安装或试跑。
 
 | 项目 | 累计 star | 日榜增星 | 用途、许可与注意点 |
 | --- | ---: | ---: | --- |
-| [CLI-Anything](https://github.com/HKUDS/CLI-Anything) | 64,786 | +1,074 | Apache-2.0。提供把已有软件包装成命令行接口的工具和社区目录，已有 v0.4.0。适合先验证重复性操作能否脚本化；仓库许可不覆盖被包装的第三方应用，生成命令的权限和输出仍要检查。 |
-| [Superpowers](https://github.com/obra/superpowers) | 325,817 | +1,003 | MIT。面向编码助手的规划、测试和审阅流程，已有 v7.0.2，提供多平台接入说明。小改动可先比较流程开销与漏检率；「有审阅步骤」不是代码已审好的证据。 |
-| [AutoClip](https://github.com/zhouxiaoka/autoclip) | 15,336 | +980 | MIT。面向播客、访谈等长视频的桌面剪辑工具，11 月 24 日发布 v1.6.0。字幕、取景和切点仍需检查；使用在线模型或外部素材时，另外确认数据传输和授权。 |
-| [MiniMind](https://github.com/jingyaogong/minimind) | 70,199 | +727 | Apache-2.0 仓库，提供约 6,400 万参数的小模型及训练流程，有 v2 发布，适合教学与复现练习。报告的训练时间不适用于所有显卡；数据集和外部权重许可另查。 |
-| [Stitch Skills](https://github.com/google-labs-code/stitch-skills) | 12,655 | +403 | Apache-2.0 的 Stitch 技能与插件集合，已有 v1.0，有主流编码助手的接入说明，依赖 Stitch MCP 服务。界面草稿不等同于可交付前端；接入真实设计资料前检查工作区与数据权限。 |
+| [Diagram Design](https://github.com/cathrynlavery/diagram-design) | 73,041 | +1,141 | MIT。给编码助手的 HTML/SVG 图解技能，仓库有示例图库，未见独立版本发布。适合做文档配图；发布前仍要核对图形关系、标签和窄屏可读性。 |
+| [Firecrawl](https://github.com/firecrawl/firecrawl) | 210,046 | +1,135 | 主体 AGPL-3.0，SDK 和部分界面组件另用 MIT。有自托管方案和 2.x 发布，适合把网页转换成可检索材料。自托管需管理浏览器与队列；从外部抓来的正文仍是不受信任的输入。 |
+| [AFFiNE](https://github.com/toeverything/AFFiNE) | 78,495 | +574 | 可自托管的文档和白板工作区，有社区版和 Canary 构建。仓库许可有边界：一般代码按 MIT，指定后端目录及相关原生组件另受条款约束；别把 Canary 当稳定版，AI 接入也需单独检查数据流向。 |
+| [OpenSRE](https://github.com/Tracer-Cloud/opensre) | 15,519 | +348 | Apache-2.0，已有 0.1 系列发布。可用自有模型诊断 CI/CD 失败并提出修复，适合先用测试仓库试用。CI 日志可能含敏感信息，也不宜把诊断工具直接接到默认可写的生产凭证。 |
+| [OpenVINO](https://github.com/openvinotoolkit/openvino) | 12,652 | +191 | Apache-2.0 的推理部署工具，有 2026.4.x 稳定发布。适合按目标 Intel 硬件比较模型部署效果；转换是否支持特定算子、外部权重能否再分发，应按模型和后端分别判断。 |
 
 ## 还需要观察
 
-形式化工作下一步看外部复核能否逐条对齐论文声明与 Lean 定义。翻译部署先用自己的术语和格式约束做小规模复测。SDK 与模型迁移则用两条失败用例验收：恢复旧会话时是否出现意外授权，以及输出预算不足时能否检测到正文截断。
+线上迁移值得追问哪些真实请求仍没有覆盖；模型评测则要看同一类错误是否会在换问法后重现。算术复杂度项目的下一步是第三方按固定提交重跑，并对照边界电路的论文表述与 Lean 定理。涉及版本或用量的切换，以自己环境中的配置与用量页为准。
