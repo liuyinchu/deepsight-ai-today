@@ -1,67 +1,56 @@
 # AI 前沿札记
 
-> 更新日期：2026-11-26（Asia/Shanghai） · 第 035 期
+> 更新日期：2026-11-27（Asia/Shanghai） · 第 036 期
 >
-> 信息范围：11 月 24 日至 26 日早间的发布与核验。查阅日期：2026-11-26。
+> 信息范围：11 月 25 日至 27 日早间的发布与核验。查阅日期：2026-11-27。
 
-## 本期关注：一次通过，离稳定可靠还有多远？
+## 本期关注：AI 交付的结果，怎么复查？
 
-Anthropic 重写 Claude 的 API 时，约 98% 的移植测试已经通过，抽查生产流量却只有约四分之一匹配。DeepMind 的新评测也问了一个类似的问题：模型能答对一道题，换张图、换种问法再多试几次，结果还能保持吗？两件事都值得看评测是怎么做的，而不只看最后一个百分比。
+给编码助手的工作加一个可回看的审阅队列，下载图像模型用自己的素材复测，以及让视频的镜头绕一圈后回到同一位置。今天三条进展都提供了一种具体的复查办法：找回来源、重做一次，或者把输出放到同一视角下比较。
 
-## 01｜Claude Messages API 迁往 Rust：复用同一次模型输出，再查服务端差异
+## 01｜Claude-Mem 17 把代理的交付放进审阅队列
 
-Anthropic 11 月 25 日发布工程复盘。团队把 Python 实现的集成测试迁到 Rust；4 月约 98% 的测试已通过，但生产流量对照中仅约四分之一的输入匹配。检查发现，移植后的测试有 100 多处断言变宽。团队改用真实请求对照新旧实现，并设法把模型的随机性与服务端差异分开：模型只生成一次，同一份输出再交给新实现，分别比较推理前后的处理。
+11 月 26 日发布的 **17.0.0** 给 My Work 加入 Review Stack。代理可以批量提交工作卡片，卡片可附来源链接、原文摘录或图片；读者可以标记已阅、收藏、留待跟进，也可以撤销批量已阅操作。配对了 Cloud Sync 并启用共享 Work View 的设备可以同步这些状态；只想在本机使用，可以保留本地模式。新版另有可选的 macOS Messages 观察器，文档称它从选定会话中的新消息开始读取，本地 Messages 数据源需要完全磁盘访问权限。这是独立的功能，不是使用 Review Stack 的前提。
 
-行为一致也不总意味着需求满足。一次修复把网页搜索工具的描述写死，虽然通过了对照，工程师仍否决了，因为服务需要动态获取当前描述。迁移后，Anthropic 报告一个区域的每请求 CPU 用量约降 **70%**；另在所观测的 Claude Code 客户端流量里，首 token 时间中位数约降 **20%**。两组指标的观测范围不同，也不是所有应用都能达到的收益。做类似重写时，值得先保留一套不随新实现改写的验收输入，再明确哪些旧行为应该保留。
+**17.0.2** 在北京时间 27 日 04:45 发布。截至 09:00 左右，npm 的 `latest` 与内置更新清单均指向 17.0.2。这个补丁修复了批准 Cloud Sync 后已运行的默认 worker 未载入同步设置的问题：安装过程最多等待后台任务五分钟，再重启一次；自行管理的 worker 不会由它重启。搜索提示词现在按全部查询词匹配，不再要求整句原样出现。
 
-来源：[Anthropic 工程复盘、生产流量对照与图 15](https://www.anthropic.com/research/migrating-api-to-rust)（11 月 25 日）。
+实用之处是能在同一处回看交付物和依据；「已阅」仍只表示队列状态。把这套流程用于团队工作时，值得先用不含敏感数据的几张卡片确认来源可打开、局部撤销符合预期，以及同步范围符合团队设置。本期核对的是发布记录与分发端点，未试跑升级。
 
-## 02｜DeepMind 的 HFE：单次答对率与反复答对率分开看
+来源：[17.0.0 发布记录](https://github.com/thedotmack/claude-mem/releases/tag/v17.0.0) · [Review Stack 文档](https://github.com/thedotmack/claude-mem/blob/v17.0.0/docs/public/usage/my-work.mdx#review-stack) · [17.0.2 修复](https://github.com/thedotmack/claude-mem/releases/tag/v17.0.2) · [npm 标签](https://registry.npmjs.org/-/package/claude-mem/dist-tags) · [内置更新清单](https://raw.githubusercontent.com/thedotmack/claude-mem/main/releases/promoted-release.json)。
 
-Google DeepMind 11 月 24 日发布 Humanity’s First Exam。报告将 **544** 个文字或图像提示分为 **136** 组，每组有四个变体，每个提示生成六次。严格组分数估计的是：每个变体从六次结果里不放回抽四次，四个变体共十六次全部正确的概率。若某一变体六次只答对五次，即使其他变体全对，这一组的概率也只有三分之一。
+## 02｜Ming-Image 开放新版权重，榜单和部署各有一道门槛
 
-在报告表 4，GPT-6.2 Astra（xhigh）从单次 **97.8%** 降到严格组 **92.4%**；Claude Fable 5.2（max）从 **93.4%** 降到 **73.7%**。两者在同表「十六次至少答对一次」这一较宽松指标上的点估计却都是 100%。这些是作者在指定推理设置下、单轮且不使用工具的结果，评分采用 Gemini 3.1 Pro；不能当作实际工作流的可靠率。对于要自动执行的步骤，比起让模型多试几次后只记最好结果，更有用的是记录错误是否会随提示变体重复出现。
+蚂蚁 inclusionAI 于 11 月 25 日上传 **Ming-Image-0.2-Design** 权重，26 日更新模型仓库。模型卡标注 **MIT**，扩散 Transformer 为 **60 亿参数**。官方推荐 2048×2048、12 步、BF16；发布方验证的配置是单张 **80 GiB** CUDA GPU。这个显存数字是已验证配置，不是对量化版或更小显存的下限测量。
 
-来源：[DeepMind 发布说明](https://blog.google/innovation-and-ai/models-and-research/google-deepmind/humanitys-first-exam/)（11 月 24 日） · [技术报告 §§3.3–4.1、表 4](https://storage.googleapis.com/deepmind-media/papers/hfe_tech_paper.pdf)。
+查阅时，Artificial Analysis 的 AA-Image-T2I v2.1 盲选榜把该模型列在开放权重组第 **1**、全榜第 **24**，Elo **1,095 ± 12**。榜单衡量的是成对盲选偏好。如果实际任务是做海报或界面稿，更应单测文字拼写、尺寸变化后的排版，以及设计稿是否容易继续编辑。模型卡区分了这次发布的 0.2 Design 和 0.1 的 Design-Layer，不宜把旧分层版的能力直接算在新权重上。
 
-## 03｜VP 与 VNP 后续：OpenAI 扩到四层算术复杂度
+来源：[Ming-Image 0.2 模型卡（固定修订）](https://huggingface.co/inclusionAI/Ming-Image-0.2-Design/tree/3538f4c311cf8f5256d631ddb7f47793f741aa2e) · [Hugging Face 元数据](https://huggingface.co/api/models/inclusionAI/Ming-Image-0.2-Design) · [开放权重榜](https://artificialanalysis.ai/image/leaderboard/text-to-image/open-weights) · [全榜与评测方法](https://artificialanalysis.ai/image/leaderboard/text-to-image/)。
 
-OpenAI 的项目记录将新版标为 11 月 24 日，仓库随后合入了扩展稿。与上期提到的精确 VP/VNP 分离相比，新说明列出任意域上的三个严格包含：**VF ⊊ VBP ⊊ VP ⊊ VNP**。作者分别用路径、完全二叉树和方格上的状态和构造分隔例，对应算术公式、算术分支程序、算术电路及其验证器求和所定义的层级。
+## 03｜SPARC 让镜头绕一圈，专门检查模型有没有忘掉场景
 
-核验范围也有一处实质变化：新 Lean 范围说明称，方格族还排除了多项式规模的「按次数分量取极限」的边界电路，但论文更强的显式定量下界仍未形式化。公开 Comparator 挑战文件陈述的是**精确类**的三级分离；合并记录没有报告为这次合并运行 Lean 或 LaTeX 构建。这里核对的是源码和作者对范围的说明，未独立重跑。这仍不是布尔计算里的 P vs NP。
+11 月 25 日的 SPARC 预印本用几何关系给视频生成模型选择历史信息：已经见过的区域优先查对应历史位置和局部邻域，没见过的区域则保留更完整的注意力。作者用 WorldScore-Static 的 **50 个场景**做闭环镜头测试，回到同一视角时比较重访画面。第二次重访中，结构相似度 SSIM 为 **0.5479**，同一方法的四步蒸馏版为 **0.5331**；感知距离 LPIPS 为 **0.1992**，对照为 **0.2256**，越低越好。这里比较的是作者指定的静态场景与对照，不是任意长视频的效果。
 
-来源：[前版范围](https://github.com/openai/math/blob/f5702854040e97fa7675c21ba37a9608f5f92dd3/lean/docs/379.md) · [新版范围（固定提交）](https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/docs/379.md) · [Comparator 陈述](https://github.com/openai/math/blob/3344da59991ed94f9ba711217b29c1d760badfa6/lean/ComparatorChallenges/ArithmeticHierarchy.lean) · [合并与验证记录](https://github.com/openai/math/pull/6)。
+表 4 的消融实验也分开了两笔账：在单张 96 GB GPU、每段 72 帧且约 99% 目标 token 已被观察的设置下，保持 50 步和引导不变，带局部窗口的剪枝版本让每段扩散主干推理快约 **2.2 倍**；缩到四步并取消无分类器引导后才达到 **53.6 倍**。后一数字不含端到端的外部几何估计。项目仓库查阅时只有说明和素材，未见可运行的推理代码或模型权重；值得等有代码后用遮挡更多的路径测整条流水线。
 
-## 补看｜ChatGPT 与 Codex 将共享用量，Instant 不扣这份额度
+来源：[SPARC 预印本，第 4 节与表 1、4](https://arxiv.org/html/2611.34064v1#S4) · [作者项目仓库](https://github.com/zju3dv/SPARC)。
 
-截至 11 月 26 日查阅，OpenAI 帮助中心称 Plus、Pro、Business 从 12 月开始陆续使用 ChatGPT 与 Codex 的共享用量，少量账号会提前启用。用量按 token 计，模型和任务会影响消耗，Instant 聊天不扣这份共享额度。启用后，能在「设置 → 用量」查看合计剩余及重置时间。公告没有给出每个账号启用的具体日期，也不是 API 计费变更。
+## 补看｜阿里云百炼提供专门的分类、判断和评分接口
 
-来源：[OpenAI：ChatGPT 与 Codex 用量说明](https://help.openai.com/en/articles/20001625-understanding-chatgpt-and-codex-usage-limits)。
+11 月 25 日上线的 `decision-model` 接受文本和图像，返回分类、是非或评分相关结果及置信信息；规格页不支持函数调用、网页搜索或通用的 Structured Outputs 功能。对工单分流一类任务，先用带标签的历史样本检查误判，尤其看高置信错误和需要人工兜底的类别；接口返回的分数不能未经校准直接当成命中概率。
 
-## 补看｜Claude Code 2.1.332 可加载 MCP 技能，旧版需单独测试
-
-11 月 25 日发布的版本加入 MCP 服务端技能（Beta），在菜单中以 `server:skill` 显示；同时加入 `PreSkillShellCommand`，可在技能或命令载入时拦下其内联 shell 命令。发布说明提醒，2.1.331 及更早版本读取含这个事件的配置会在启动时弹出对话框。团队若共用配置，先核对版本，并用无副作用的命令验证拒绝规则；该钩子不等于对插件或整个 MCP 服务做过审计。
-
-来源：[Claude Code v2.1.332 发布说明](https://github.com/anthropics/claude-code/releases/tag/v2.1.332)。
-
-## 补看｜ggml 1.1.0 减少空等，并补 Metal 的 NVFP4 支持
-
-11 月 25 日的 ggml **v1.1.0** 和 llama.cpp 预发布 **b12707** 都包含非 OpenMP 构建过度轮询 CPU 的修复。另一个独立变化是 ggml 1.1.0 为 Metal 增加 NVFP4 GGUF 的矩阵运算内核；维护者说明对应运算此前会退回 CPU。对 Apple GPU 部署，先确认实际构建包含哪些提交，再用目标模型和批大小比较推理速度与 CPU 占用。上游发布不代表下游包已跟进。
-
-来源：[ggml v1.1.0](https://github.com/ggml-org/ggml/releases/tag/v1.1.0) · [llama.cpp b12707](https://github.com/ggml-org/llama.cpp/releases/tag/b12707) · [Metal 实现与测试条件](https://github.com/ggml-org/llama.cpp/pull/32825)。
+来源：[百炼上线记录](https://help.aliyun.com/en/model-studio/newly-released-models) · [模型能力和限制](https://help.aliyun.com/en/model-studio/decision-model-stable)。
 
 ## 每日 GitHub AI 热点
 
-2026-11-26 约 09:03（北京时间）读取 [GitHub Trending 日榜](https://github.com/trending)。累计 star 与「stars today」来自同一份页面快照；后者不代表精确滚动 24 小时。核对了仓库说明、版本与许可，未安装或试跑。
+2026-11-27 约 09:00（北京时间）查阅 [GitHub Trending 日榜](https://github.com/trending?since=daily)。下列累计 star 与「stars today」取自同一页面，不把日榜数字解释为精确滚动 24 小时。仅核对仓库、版本和许可，未安装试跑。
 
 | 项目 | 累计 star | 日榜增星 | 用途、许可与注意点 |
 | --- | ---: | ---: | --- |
-| [Diagram Design](https://github.com/cathrynlavery/diagram-design) | 73,041 | +1,141 | MIT。给编码助手的 HTML/SVG 图解技能，仓库有示例图库，未见独立版本发布。适合做文档配图；发布前仍要核对图形关系、标签和窄屏可读性。 |
-| [Firecrawl](https://github.com/firecrawl/firecrawl) | 210,046 | +1,135 | 主体 AGPL-3.0，SDK 和部分界面组件另用 MIT。有自托管方案和 2.x 发布，适合把网页转换成可检索材料。自托管需管理浏览器与队列；从外部抓来的正文仍是不受信任的输入。 |
-| [AFFiNE](https://github.com/toeverything/AFFiNE) | 78,495 | +574 | 可自托管的文档和白板工作区，有社区版和 Canary 构建。仓库许可有边界：一般代码按 MIT，指定后端目录及相关原生组件另受条款约束；别把 Canary 当稳定版，AI 接入也需单独检查数据流向。 |
-| [OpenSRE](https://github.com/Tracer-Cloud/opensre) | 15,519 | +348 | Apache-2.0，已有 0.1 系列发布。可用自有模型诊断 CI/CD 失败并提出修复，适合先用测试仓库试用。CI 日志可能含敏感信息，也不宜把诊断工具直接接到默认可写的生产凭证。 |
-| [OpenVINO](https://github.com/openvinotoolkit/openvino) | 12,652 | +191 | Apache-2.0 的推理部署工具，有 2026.4.x 稳定发布。适合按目标 Intel 硬件比较模型部署效果；转换是否支持特定算子、外部权重能否再分发，应按模型和后端分别判断。 |
+| [MiniMind](https://github.com/jingyaogong/minimind) | 71,644 | +702 | Apache-2.0 教学仓库，有 v2 发布。11 月 26 日主分支合入[学习率预热修正](https://github.com/jingyaogong/minimind/pull/960)，避免启用 warmup 时跳过第一档；默认不启用预热的路径不变。复现实验应固定提交，数据及权重另核许可。 |
+| [AutoClip](https://github.com/zhouxiaoka/autoclip) | 16,936 | +774 | MIT，处理访谈、播客等长视频。当前稳定版 1.6.1，11 月 26 日的 [1.6.2](https://github.com/zhouxiaoka/autoclip/releases/tag/v1.6.2) 是预发布，新增三款短片模板。桌面包未签名或公证；选择云端转写时音频需要上传。 |
+| [Cursor Plugins](https://github.com/cursor/plugins) | 19,790 | +270 | README 标注 MIT，收录 Cursor 插件规范与第一方、第三方插件示例，未见 GitHub 独立发布。适合对照插件目录和声明；安装前还要逐项检查外部服务、许可和权限。 |
+| [Stitch Skills](https://github.com/google-labs-code/stitch-skills) | 13,293 | +309 | Apache-2.0，有 v1.0 发布。界面设计、页面生成及导出技能依赖 Stitch MCP；仓库可读不等于远程服务无需账号。适合先用样例项目验证生成文件是否符合已有设计约束。 |
 
 ## 还需要观察
 
-线上迁移值得追问哪些真实请求仍没有覆盖；模型评测则要看同一类错误是否会在换问法后重现。算术复杂度项目的下一步是第三方按固定提交重跑，并对照边界电路的论文表述与 Lean 定理。涉及版本或用量的切换，以自己环境中的配置与用量页为准。
+Review Stack 的实际价值取决于来源能否长期追溯。Ming-Image 值得在真实中英混排与长文案上做对照；SPARC 则等公开推理材料后检验重访和几何估计是否仍能同时兼顾。三条都已有明确的检查对象，但不能用队列状态、榜单名次或单段加速倍数替代实际验收。
