@@ -1,56 +1,50 @@
 # AI 前沿札记
 
-> 更新日期：2026-11-27（Asia/Shanghai） · 第 036 期
+> 更新日期：2026-11-28（Asia/Shanghai） · 第 037 期
 >
-> 信息范围：11 月 25 日至 27 日早间的发布与核验。查阅日期：2026-11-27。
+> 信息范围：11 月 25 日至 28 日早间的发布与核验。查阅日期：2026-11-28。
 
-## 本期关注：AI 交付的结果，怎么复查？
+## 本期关注：只改一个环节，结果会差多少？
 
-给编码助手的工作加一个可回看的审阅队列，下载图像模型用自己的素材复测，以及让视频的镜头绕一圈后回到同一位置。今天三条进展都提供了一种具体的复查办法：找回来源、重做一次，或者把输出放到同一视角下比较。
+同样是 32K 上下文，改变历史记录的压缩方式，代理答对的问题可能多一倍以上。换一套文档评分规则，同一份输出也可能多得 10 分。视频实验则把加速范围限定到编解码器。这三件事适合放在一起看：先问**改了哪一层、量的是哪一层**，再决定结果能不能用到自己的工作里。
 
-## 01｜Claude-Mem 17 把代理的交付放进审阅队列
+## 01｜NVIDIA NOOA：同样的 32K，上下文交给谁压缩？
 
-11 月 26 日发布的 **17.0.0** 给 My Work 加入 Review Stack。代理可以批量提交工作卡片，卡片可附来源链接、原文摘录或图片；读者可以标记已阅、收藏、留待跟进，也可以撤销批量已阅操作。配对了 Cloud Sync 并启用共享 Work View 的设备可以同步这些状态；只想在本机使用，可以保留本地模式。新版另有可选的 macOS Messages 观察器，文档称它从选定会话中的新消息开始读取，本地 Messages 数据源需要完全磁盘访问权限。这是独立的功能，不是使用 Review Stack 的前提。
+NVIDIA 团队 11 月 25 日提交预印本，在开源代理框架 NOOA 比较两种上下文管理方式。自动模式在达到预算的 **80%** 时压缩，保留初始指令与最近十条事件；另一组测量剩余空间、发出提醒，指导模型在约 **85%** 时考虑压缩，并允许模型选择压缩范围、按标签找回原文。实验比较的是两套完整配置，不能只把差异归给「由谁按下压缩键」。
 
-**17.0.2** 在北京时间 27 日 04:45 发布。截至 09:00 左右，npm 的 `latest` 与内置更新清单均指向 17.0.2。这个补丁修复了批准 Cloud Sync 后已运行的默认 worker 未载入同步设置的问题：安装过程最多等待后台任务五分钟，再重启一次；自行管理的 worker 不会由它重启。搜索提示词现在按全部查询词匹配，不再要求整句原样出现。
+在有 **90 道题**的 OfficeQA Pro v2 文档问答任务上，32K 上限下，GPT-6.1 Sol 的通过率由 **21% 升至 56%**；Kimi K3 由 **41% 升至 43%**，而累计输入从 **6,200 万降至 3,600 万 token**。这里每轮都计入已缓存的输入，不能换算成 API 费用。Claude Opus 5.5 在有时机提示的设置下，汇总各个预算，仅约 **4%** 的任务发起过压缩，紧预算下成绩落后于自动方案。另一项机器学习工程任务 MLE-bench Lite 的收益小得多。
 
-实用之处是能在同一处回看交付物和依据；「已阅」仍只表示队列状态。把这套流程用于团队工作时，值得先用不含敏感数据的几张卡片确认来源可打开、局部撤销符合预期，以及同步范围符合团队设置。本期核对的是发布记录与分发端点，未试跑升级。
+对长任务，值得测的是恢复后能否找回关键依据、继续完成原任务，而不只是提示词短了多少。这些数字是论文在 NOOA 中测得的，不等于 Codex 或任何生产代理会得到同样结果。
 
-来源：[17.0.0 发布记录](https://github.com/thedotmack/claude-mem/releases/tag/v17.0.0) · [Review Stack 文档](https://github.com/thedotmack/claude-mem/blob/v17.0.0/docs/public/usage/my-work.mdx#review-stack) · [17.0.2 修复](https://github.com/thedotmack/claude-mem/releases/tag/v17.0.2) · [npm 标签](https://registry.npmjs.org/-/package/claude-mem/dist-tags) · [内置更新清单](https://raw.githubusercontent.com/thedotmack/claude-mem/main/releases/promoted-release.json)。
+来源：[NOOA 预印本，第 3–5 节](https://arxiv.org/html/2611.34147v1#S3) · [累计输入，第 6 节](https://arxiv.org/html/2611.34147v1#S6) · [NOOA 源码](https://github.com/NVIDIA-NeMo/labs-OO-Agents)。
 
-## 02｜Ming-Image 开放新版权重，榜单和部署各有一道门槛
+## 02｜ParseBench 2.2.3：解析结果没变，得分可以变
 
-蚂蚁 inclusionAI 于 11 月 25 日上传 **Ming-Image-0.2-Design** 权重，26 日更新模型仓库。模型卡标注 **MIT**，扩散 Transformer 为 **60 亿参数**。官方推荐 2048×2048、12 步、BF16；发布方验证的配置是单张 **80 GiB** CUDA GPU。这个显存数字是已验证配置，不是对量化版或更小显存的下限测量。
+北京时间 11 月 27 日 05:40，LlamaIndex 的 ParseBench 发布 **2.2.3**。新版评分器把等价的遮盖标记按同一种标记计分，也会识别忠实写在图片替代文字里的原文。维护者举例：同一行文字完整出现在图片的替代文字中，旧评分器给 **90 分**，新版给 **100 分**；把那行删掉仍只能得 **95 分**。这说明旧版曾把一种等价表示判得比真的漏读更差。
 
-查阅时，Artificial Analysis 的 AA-Image-T2I v2.1 盲选榜把该模型列在开放权重组第 **1**、全榜第 **24**，Elo **1,095 ± 12**。榜单衡量的是成对盲选偏好。如果实际任务是做海报或界面稿，更应单测文字拼写、尺寸变化后的排版，以及设计稿是否容易继续编辑。模型卡区分了这次发布的 0.2 Design 和 0.1 的 Design-Layer，不宜把旧分层版的能力直接算在新权重上。
+如果团队用分数给 OCR 或文档解析器做回归验收，先固定评分器、数据集和解析器三方版本；要换评分器，应把新旧输出在同一口径下重评。维护者明确写道，合并时尚未重算已有公开结果，建议将新评分器与已统一参考遮盖标记的 **数据集 v2.10** 配套。本期未重评分，也不把英语基准当作中文材料的验证。
 
-来源：[Ming-Image 0.2 模型卡（固定修订）](https://huggingface.co/inclusionAI/Ming-Image-0.2-Design/tree/3538f4c311cf8f5256d631ddb7f47793f741aa2e) · [Hugging Face 元数据](https://huggingface.co/api/models/inclusionAI/Ming-Image-0.2-Design) · [开放权重榜](https://artificialanalysis.ai/image/leaderboard/text-to-image/open-weights) · [全榜与评测方法](https://artificialanalysis.ai/image/leaderboard/text-to-image/)。
+来源：[2.2.3 发布说明](https://github.com/run-llama/ParseBench/releases/tag/v2.2.3) · [维护者的回归样例与重评限制](https://github.com/run-llama/ParseBench/pull/339) · [数据集卡](https://huggingface.co/datasets/llamaindex/ParseBench-2)。
 
-## 03｜SPARC 让镜头绕一圈，专门检查模型有没有忘掉场景
+## 03｜LiveVAE：视频加速也可以先从编解码器做起
 
-11 月 25 日的 SPARC 预印本用几何关系给视频生成模型选择历史信息：已经见过的区域优先查对应历史位置和局部邻域，没见过的区域则保留更完整的注意力。作者用 WorldScore-Static 的 **50 个场景**做闭环镜头测试，回到同一视角时比较重访画面。第二次重访中，结构相似度 SSIM 为 **0.5479**，同一方法的四步蒸馏版为 **0.5331**；感知距离 LPIPS 为 **0.1992**，对照为 **0.2256**，越低越好。这里比较的是作者指定的静态场景与对照，不是任意长视频的效果。
+11 月 25 日提交的 LiveVAE 预印本，不改视频扩散主干，而是用因果窗口注意力做流式视频自编码器：视频分块进入，当前块只保留有限的历史缓存。作者在单张 NVIDIA H100、批量为 1、预热后测延迟中位数。MiniMax-H3 的短片测试中，相对官方自编码器，编码快 **5.2–6.2 倍**、解码快 **3.0–3.3 倍**；这是两段分别计时，不是整个生成流程快了同样多。
 
-表 4 的消融实验也分开了两笔账：在单张 96 GB GPU、每段 72 帧且约 99% 目标 token 已被观察的设置下，保持 50 步和引导不变，带局部窗口的剪枝版本让每段扩散主干推理快约 **2.2 倍**；缩到四步并取消无分类器引导后才达到 **53.6 倍**。后一数字不含端到端的外部几何估计。项目仓库查阅时只有说明和素材，未见可运行的推理代码或模型权重；值得等有代码后用遮挡更多的路径测整条流水线。
+作者的重建测试中，MiniMax-H3 的峰值信噪比（PSNR）改善，但部分设置的感知距离 LPIPS 仍高于官方基线（越低越好）。因此，文字或边缘细节很重要时，即使编码更快，也应拿实际素材对照重建画面。做实时视频服务，还要分别测首帧等待、稳定吞吐和整条生成流程，而不是把单组件倍数当作上线指标。
 
-来源：[SPARC 预印本，第 4 节与表 1、4](https://arxiv.org/html/2611.34064v1#S4) · [作者项目仓库](https://github.com/zju3dv/SPARC)。
-
-## 补看｜阿里云百炼提供专门的分类、判断和评分接口
-
-11 月 25 日上线的 `decision-model` 接受文本和图像，返回分类、是非或评分相关结果及置信信息；规格页不支持函数调用、网页搜索或通用的 Structured Outputs 功能。对工单分流一类任务，先用带标签的历史样本检查误判，尤其看高置信错误和需要人工兜底的类别；接口返回的分数不能未经校准直接当成命中概率。
-
-来源：[百炼上线记录](https://help.aliyun.com/en/model-studio/newly-released-models) · [模型能力和限制](https://help.aliyun.com/en/model-studio/decision-model-stable)。
+来源：[LiveVAE 预印本与日期](https://arxiv.org/abs/2611.34912) · [第 4 节、表 1 与表 3：实验设置及分项测量](https://arxiv.org/html/2611.34912v1#S4)。
 
 ## 每日 GitHub AI 热点
 
-2026-11-27 约 09:00（北京时间）查阅 [GitHub Trending 日榜](https://github.com/trending?since=daily)。下列累计 star 与「stars today」取自同一页面，不把日榜数字解释为精确滚动 24 小时。仅核对仓库、版本和许可，未安装试跑。
+2026-11-28 约 09:00（北京时间）查阅 [GitHub Trending 日榜](https://github.com/trending?since=daily)。累计 star 与「stars today」取自同一次页面，不将日榜视作精确滚动 24 小时。以下查阅仓库与版本，未安装试跑。
 
 | 项目 | 累计 star | 日榜增星 | 用途、许可与注意点 |
 | --- | ---: | ---: | --- |
-| [MiniMind](https://github.com/jingyaogong/minimind) | 71,644 | +702 | Apache-2.0 教学仓库，有 v2 发布。11 月 26 日主分支合入[学习率预热修正](https://github.com/jingyaogong/minimind/pull/960)，避免启用 warmup 时跳过第一档；默认不启用预热的路径不变。复现实验应固定提交，数据及权重另核许可。 |
-| [AutoClip](https://github.com/zhouxiaoka/autoclip) | 16,936 | +774 | MIT，处理访谈、播客等长视频。当前稳定版 1.6.1，11 月 26 日的 [1.6.2](https://github.com/zhouxiaoka/autoclip/releases/tag/v1.6.2) 是预发布，新增三款短片模板。桌面包未签名或公证；选择云端转写时音频需要上传。 |
-| [Cursor Plugins](https://github.com/cursor/plugins) | 19,790 | +270 | README 标注 MIT，收录 Cursor 插件规范与第一方、第三方插件示例，未见 GitHub 独立发布。适合对照插件目录和声明；安装前还要逐项检查外部服务、许可和权限。 |
-| [Stitch Skills](https://github.com/google-labs-code/stitch-skills) | 13,293 | +309 | Apache-2.0，有 v1.0 发布。界面设计、页面生成及导出技能依赖 Stitch MCP；仓库可读不等于远程服务无需账号。适合先用样例项目验证生成文件是否符合已有设计约束。 |
+| [Firecrawl](https://github.com/firecrawl/firecrawl) | 211,689 | +822 | 仓库标注 AGPL-3.0，[稳定发布页](https://github.com/firecrawl/firecrawl/releases/tag/v2.11.0)显示 v2.11.0。适合为文档问答或代理提取网页正文；自托管与托管接口的功能、配额和服务条款不应混用，采集前仍要核对权限。 |
+| [OpenVINO](https://github.com/openvinotoolkit/openvino) | 12,953 | +151 | Apache-2.0 的推理优化和部署工具，[稳定发布 2026.4.1](https://github.com/openvinotoolkit/openvino/releases/tag/2026.4.1)。适合验算 CPU、GPU 或 NPU 端的延迟；支持情况需按设备、算子和精度核对，模型权重许可不随工具许可转移。 |
+| [diagram-design](https://github.com/cathrynlavery/diagram-design) | 74,465 | +725 | MIT，提供可交给编码助手的制图技能和 52 种 HTML/SVG 图示样例，未见独立 GitHub 发布。适合技术文档选图；生成图仍须复核数据、箭头方向、标注与可访问性。 |
+| [AFFiNE](https://github.com/toeverything/AFFiNE) | 79,454 | +474 | 笔记与白板工作区，社区版可按 MIT 自托管，[稳定发布 0.27.4](https://github.com/toeverything/AFFiNE/releases/tag/v0.27.4)。适合整理团队资料和草图；自托管社区版不代表所有 AI 服务自带或离线，部署前需另核所用功能及数据流向。 |
 
 ## 还需要观察
 
-Review Stack 的实际价值取决于来源能否长期追溯。Ming-Image 值得在真实中英混排与长文案上做对照；SPARC 则等公开推理材料后检验重访和几何估计是否仍能同时兼顾。三条都已有明确的检查对象，但不能用队列状态、榜单名次或单段加速倍数替代实际验收。
+NOOA 值得补看更长、分多次恢复的任务，尤其是被压掉的证据能否按需找回；ParseBench 要等相同输出重评分后再比较名次；LiveVAE 的下一关，是编解码加速能否在真实服务里省下首帧和全程时间。
